@@ -2,8 +2,9 @@ import { cn } from '@/lib/utils';
 
 /**
  * DollarMemo brand mark — a stack of memo/receipt sheets with a folded corner
- * and a dollar sign. Self-contained SVG (own mint tile + colors) so it reads
- * consistently in both light and dark mode. Size it via className (h-/w-).
+ * and a dollar sign. Colors come from the brand CSS variables (set via inline
+ * style so var() resolves), so the logo recolors with the chosen accent in
+ * Settings. Size it via className (h-/w-).
  */
 export default function BrandLogo({ className }: { className?: string }) {
   return (
@@ -13,13 +14,12 @@ export default function BrandLogo({ className }: { className?: string }) {
       role="img"
       aria-label="DollarMemo logo"
     >
-      {/* mint tile backdrop */}
-      <rect width="64" height="64" rx="16" fill="#dcf0e8" />
+      {/* soft accent-tinted tile backdrop */}
+      <rect width="64" height="64" rx="16" style={{ fill: 'rgb(var(--brand-100))' }} />
 
       <g
         transform="rotate(8 32 32)"
-        fill="#dcf0e8"
-        stroke="#14463f"
+        style={{ fill: 'rgb(var(--brand-100))', stroke: 'rgb(var(--brand-900))' }}
         strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -29,7 +29,7 @@ export default function BrandLogo({ className }: { className?: string }) {
         {/* front sheet with a folded top-right corner */}
         <path d="M28 13 H38 L45 20 V43 A3 3 0 0 1 42 46 H25 A3 3 0 0 1 22 43 V16 A3 3 0 0 1 25 13 Z" />
         {/* folded corner accent */}
-        <path d="M38 13 L45 20 H38 Z" fill="#5cc3ac" />
+        <path d="M38 13 L45 20 H38 Z" style={{ fill: 'rgb(var(--brand-400))' }} />
         {/* dollar sign */}
         <text
           x="33.5"
@@ -38,8 +38,7 @@ export default function BrandLogo({ className }: { className?: string }) {
           fontSize="25"
           fontWeight="800"
           fontFamily="var(--font-sans), system-ui, sans-serif"
-          fill="#14463f"
-          stroke="none"
+          style={{ fill: 'rgb(var(--brand-900))', stroke: 'none' }}
         >
           $
         </text>
