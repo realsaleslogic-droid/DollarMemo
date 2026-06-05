@@ -25,7 +25,7 @@ function downloadBlob(content: string, filename: string, type: string) {
 }
 
 /** Export transactions (filtered or all) to a CSV file. */
-export function exportCSV(txs: Transaction[], filename = 'flowtrack-transactions.csv') {
+export function exportCSV(txs: Transaction[], filename = 'dollarmemo-transactions.csv') {
   const header = ['Date', 'Merchant', 'Category', 'Type', 'Amount', 'Description'];
   const rows = [...txs]
     .sort((a, b) => +new Date(b.date) - +new Date(a.date))
@@ -46,7 +46,7 @@ export function exportCSV(txs: Transaction[], filename = 'flowtrack-transactions
 }
 
 /** Generate a polished PDF financial statement from the given transactions. */
-export function exportPDF(txs: Transaction[], filename = 'flowtrack-statement.pdf') {
+export function exportPDF(txs: Transaction[], filename = 'dollarmemo-statement.pdf') {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const brand = '#14a085';
@@ -57,7 +57,7 @@ export function exportPDF(txs: Transaction[], filename = 'flowtrack-statement.pd
   doc.setTextColor('#ffffff');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
-  doc.text('FlowTrack', 40, 45);
+  doc.text('DollarMemo', 40, 45);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(11);
   doc.text('Financial Statement', 40, 64);

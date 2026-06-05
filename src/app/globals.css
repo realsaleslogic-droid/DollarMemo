@@ -31,6 +31,34 @@
     color: rgb(var(--ink));
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Smoother touch interactions: no grey tap flash, no 300ms delay, and no
+     accidental text-selection when tapping buttons / nav / icons on mobile. */
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  select,
+  summary,
+  label {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  summary {
+    touch-action: manipulation;
+  }
+  button,
+  [role='button'],
+  [role='switch'],
+  .btn,
+  nav a {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Decorative ambient background blobs */
@@ -87,8 +115,10 @@
     @apply btn bg-brand-500/10 text-brand-700 hover:bg-brand-500/20 dark:text-brand-300;
   }
 
+  /* text-base (16px) on mobile prevents iOS from auto-zooming on focus; shrinks
+     to text-sm on larger screens. */
   .input {
-    @apply w-full rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-soft/70 focus:border-brand-400 focus:bg-surface focus:ring-2 focus:ring-brand-400/30;
+    @apply w-full rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 text-base text-ink outline-none transition placeholder:text-ink-soft/70 focus:border-brand-400 focus:bg-surface focus:ring-2 focus:ring-brand-400/30 sm:text-sm;
   }
 
   .label {
@@ -99,7 +129,7 @@
     @apply inline-flex rounded-xl border border-line bg-surface-2 p-1;
   }
   .segmented button {
-    @apply rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-soft transition;
+    @apply rounded-lg px-3 py-2 text-xs font-semibold text-ink-soft transition active:scale-[0.97] sm:py-1.5;
   }
   .segmented button[data-active='true'] {
     @apply bg-surface text-ink shadow-sm;

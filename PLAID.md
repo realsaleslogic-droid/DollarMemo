@@ -1,6 +1,6 @@
 # Bank & Card Sync (Plaid)
 
-FlowTrack links real bank and credit-card accounts through **[Plaid](https://plaid.com)**.
+DollarMemo links real bank and credit-card accounts through **[Plaid](https://plaid.com)**.
 Users connect an institution via **Plaid Link**, and transactions are pulled in,
 **categorized**, de-duplicated, and stored on their account — appearing across
 the dashboard, transactions, reports, and recurring views automatically.
@@ -79,19 +79,19 @@ automatically. **Production hardening:** add Plaid webhook JWT verification
 (`plaid-verification` header + `/webhook_verification_key/get`) in
 `src/app/api/plaid/webhook/route.ts` before relying on it in production.
 
-## How it maps to FlowTrack
+## How it maps to DollarMemo
 
-- **Amounts** — Plaid is positive for money leaving the account; FlowTrack stores
+- **Amounts** — Plaid is positive for money leaving the account; DollarMemo stores
   `+` income / `-` expense, so amounts are negated and the type is derived from
   the sign (`src/lib/plaid/sync.ts`).
-- **Categories** — Plaid's Personal Finance Category → FlowTrack categories in
+- **Categories** — Plaid's Personal Finance Category → DollarMemo categories in
   `src/lib/plaid/categoryMap.ts` (edit to taste).
 - **De-dup** — keyed on `(user_id, external_id = Plaid transaction_id)`; pending
   transactions are replaced when they post.
 
 ## Security notes
 
-- Bank credentials are entered in Plaid Link and **never touch FlowTrack**.
+- Bank credentials are entered in Plaid Link and **never touch DollarMemo**.
 - Access tokens are **encrypted (AES-256-GCM)** and stored in a table only the
   **service-role** server client can read — unreachable with the public key.
 - All synced rows are protected by the existing per-user **row-level security**.

@@ -121,7 +121,7 @@ export default function AccountsClient({
           </span>
           <p className="font-semibold">No accounts linked yet</p>
           <p className="max-w-sm text-sm text-ink-soft">
-            Connect a bank or card to pull in real transactions and let FlowTrack track and categorize your spending.
+            Connect a bank or card to pull in real transactions and let DollarMemo track and categorize your spending.
           </p>
         </div>
       ) : (
@@ -171,7 +171,7 @@ export default function AccountsClient({
 
       <p className="flex items-center gap-2 px-1 text-xs text-ink-soft">
         <ShieldCheck size={14} className="shrink-0 text-income" />
-        Bank credentials are handled by Plaid and never touch FlowTrack. Access tokens are encrypted and stored
+        Bank credentials are handled by Plaid and never touch DollarMemo. Access tokens are encrypted and stored
         server-side only.
       </p>
     </div>

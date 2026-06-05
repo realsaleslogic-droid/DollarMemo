@@ -10,9 +10,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'FlowTrack — Personal Finance, Reimagined',
+  title: 'DollarMemo — Personal Finance, Reimagined',
   description:
-    'FlowTrack is a premium personal finance dashboard. Track income & expenses, analyze spending, manage subscriptions, and generate statements.',
+    'DollarMemo is a premium personal finance dashboard. Track income & expenses, analyze spending, manage subscriptions, and generate statements.',
   keywords: ['finance', 'budgeting', 'expense tracker', 'fintech', 'dashboard'],
 };
 

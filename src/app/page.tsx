@@ -19,7 +19,7 @@ export default function Landing() {
         <header className="flex items-center justify-between py-6">
           <div className="flex items-center gap-2">
             <BrandLogo className="h-10 w-10" />
-            <span className="text-xl font-extrabold tracking-tight">FlowTrack</span>
+            <span className="text-xl font-extrabold tracking-tight">DollarMemo</span>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/login" className="btn-ghost">Log in</Link>

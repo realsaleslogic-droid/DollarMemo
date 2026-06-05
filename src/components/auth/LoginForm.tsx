@@ -23,7 +23,7 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
   return (
     <div>
       <h1 className="text-2xl font-extrabold tracking-tight">Welcome back</h1>
-      <p className="mt-1 text-sm text-ink-soft">Log in to your FlowTrack account.</p>
+      <p className="mt-1 text-sm text-ink-soft">Log in to your DollarMemo account.</p>
 
       {googleEnabled && (
         <div className="mt-6 space-y-3">

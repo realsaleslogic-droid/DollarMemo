@@ -227,16 +227,26 @@ export function detectSubscriptions(txs: Transaction[]): Subscription[] {
   for (const [recurringId, items] of groups) {
     const sorted = items.sort((a, b) => +new Date(b.date) - +new Date(a.date));
     const latest = sorted[0];
-    const monthly = Math.abs(latest.amount);
+    const charge = Math.abs(latest.amount);
+    const frequency = latest.frequency ?? 'monthly';
+
+    // Normalize the charge to monthly/annual figures based on how often it repeats.
+    const annualCost = frequency === 'weekly' ? charge * 52 : frequency === 'yearly' ? charge : charge * 12;
+    const monthlyCost = annualCost / 12;
+
+    // Project the next billing date one interval after the latest charge.
     const next = new Date(latest.date);
-    next.setMonth(next.getMonth() + 1);
+    if (frequency === 'weekly') next.setDate(next.getDate() + 7);
+    else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
+    else next.setMonth(next.getMonth() + 1);
+
     subs.push({
       recurringId,
       name: latest.merchant,
       category: latest.category,
-      monthlyCost: monthly,
-      annualCost: monthly * 12,
-      frequency: latest.frequency ?? 'monthly',
+      monthlyCost,
+      annualCost,
+      frequency,
       lastCharge: latest.date,
       nextBilling: next.toISOString(),
       occurrences: items.length,

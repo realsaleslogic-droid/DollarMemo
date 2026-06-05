@@ -25,7 +25,7 @@ export default async function AccountsPage() {
           </span>
           <h3 className="text-lg font-bold">Create an account to link your bank</h3>
           <p className="max-w-md text-sm text-ink-soft">
-            You&apos;re in demo mode. Connecting a real bank or card requires a free FlowTrack account so your
+            You&apos;re in demo mode. Connecting a real bank or card requires a free DollarMemo account so your
             transactions can sync securely to your profile.
           </p>
           <Link

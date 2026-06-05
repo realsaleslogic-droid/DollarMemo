@@ -47,7 +47,7 @@ export async function createLinkToken(): Promise<string> {
 
   const resp = await plaid.linkTokenCreate({
     user: { client_user_id: userId },
-    client_name: 'FlowTrack',
+    client_name: 'DollarMemo',
     products: PLAID_PRODUCTS as unknown as Products[],
     country_codes: PLAID_COUNTRY_CODES as unknown as CountryCode[],
     language: 'en',

@@ -1,8 +1,8 @@
 {
-  "name": "flowtrack",
+  "name": "dollarmemo",
   "version": "1.0.0",
   "private": true,
-  "description": "FlowTrack — a premium personal finance dashboard (Next.js + Supabase + Tailwind).",
+  "description": "DollarMemo — a premium personal finance dashboard (Next.js + Supabase + Tailwind).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

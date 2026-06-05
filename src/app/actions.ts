@@ -21,6 +21,7 @@ async function requireUser() {
 
 export async function createTransaction(input: TransactionInput): Promise<Transaction> {
   const { supabase, user } = await requireUser();
+  const isRecurring = !!input.isRecurring;
   const { data, error } = await supabase
     .from('transactions')
     .insert({
@@ -31,6 +32,9 @@ export async function createTransaction(input: TransactionInput): Promise<Transa
       amount: normalizeAmount(input),
       type: input.type,
       description: input.description?.trim() || null,
+      is_recurring: isRecurring,
+      recurring_id: isRecurring ? crypto.randomUUID() : null,
+      frequency: isRecurring ? input.frequency ?? 'monthly' : null,
     })
     .select()
     .single();
@@ -41,6 +45,21 @@ export async function createTransaction(input: TransactionInput): Promise<Transa
 
 export async function updateTransaction(id: string, input: TransactionInput): Promise<Transaction> {
   const { supabase, user } = await requireUser();
+  const isRecurring = !!input.isRecurring;
+
+  // Preserve the existing group id if it was already recurring; otherwise mint
+  // a new one when newly marked recurring.
+  let recurringId: string | null = null;
+  if (isRecurring) {
+    const { data: existing } = await supabase
+      .from('transactions')
+      .select('recurring_id')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+    recurringId = (existing?.recurring_id as string | null) ?? crypto.randomUUID();
+  }
+
   const { data, error } = await supabase
     .from('transactions')
     .update({
@@ -50,6 +69,9 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
       amount: normalizeAmount(input),
       type: input.type,
       description: input.description?.trim() || null,
+      is_recurring: isRecurring,
+      recurring_id: recurringId,
+      frequency: isRecurring ? input.frequency ?? 'monthly' : null,
     })
     .eq('id', id)
     .eq('user_id', user.id) // RLS also enforces this

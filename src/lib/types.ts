@@ -16,6 +16,8 @@ export interface Transaction {
 export type Period = 'today' | 'week' | 'month' | 'year';
 export type Granularity = 'daily' | 'weekly' | 'monthly';
 
+export type Frequency = 'weekly' | 'monthly' | 'yearly';
+
 export interface TransactionInput {
   date: string;
   merchant: string;
@@ -23,4 +25,6 @@ export interface TransactionInput {
   amount: number; // always positive; sign derived from `type`
   type: 'income' | 'expense';
   description?: string | null;
+  isRecurring?: boolean;
+  frequency?: Frequency | null;
 }

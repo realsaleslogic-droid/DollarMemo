@@ -13,8 +13,9 @@ const uid = () =>
     ? crypto.randomUUID()
     : `tx_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-function toRecord(input: TransactionInput, id = uid()): Transaction {
+function toRecord(input: TransactionInput, id = uid(), recurringId?: string | null): Transaction {
   const magnitude = Math.abs(Number(input.amount) || 0);
+  const isRecurring = !!input.isRecurring;
   return {
     id,
     date: new Date(input.date).toISOString(),
@@ -23,9 +24,10 @@ function toRecord(input: TransactionInput, id = uid()): Transaction {
     amount: input.type === 'expense' ? -magnitude : magnitude,
     type: input.type,
     description: input.description?.trim() || null,
-    isRecurring: false,
-    recurringId: null,
-    frequency: null,
+    isRecurring,
+    // Stable per-transaction recurring group id so editing keeps it grouped.
+    recurringId: isRecurring ? recurringId ?? `man_${id}` : null,
+    frequency: isRecurring ? input.frequency ?? 'monthly' : null,
   };
 }
 
@@ -91,10 +93,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   editTransaction: async (id, input) => {
     if (get().mode === 'demo') {
-      const record = toRecord(input, id);
       const existing = get().transactions.find((t) => t.id === id);
-      const merged = { ...record, isRecurring: existing?.isRecurring ?? false, recurringId: existing?.recurringId ?? null, frequency: existing?.frequency ?? null };
-      const next = get().transactions.map((t) => (t.id === id ? merged : t));
+      // Honor the form's recurring choice, but keep the existing group id so an
+      // already-recurring transaction stays grouped after an edit.
+      const record = toRecord(input, id, existing?.recurringId);
+      const next = get().transactions.map((t) => (t.id === id ? record : t));
       set({ transactions: next });
       saveDemoData(next);
       return;

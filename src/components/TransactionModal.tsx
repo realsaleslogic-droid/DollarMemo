@@ -2,13 +2,19 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Delete, X, Loader2 } from 'lucide-react';
+import { Delete, X, Loader2, Repeat } from 'lucide-react';
 import { useUIStore } from '@/store/useUIStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { EXPENSE_CATEGORIES } from '@/lib/categories';
+import type { Frequency } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del'];
+const FREQUENCIES: { id: Frequency; label: string }[] = [
+  { id: 'weekly', label: 'Weekly' },
+  { id: 'monthly', label: 'Monthly' },
+  { id: 'yearly', label: 'Yearly' },
+];
 
 export default function TransactionModal() {
   const { modalOpen, editing, closeModal } = useUIStore();
@@ -20,6 +26,8 @@ export default function TransactionModal() {
   const [category, setCategory] = useState('Food');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<Frequency>('monthly');
   const [saving, setSaving] = useState(false);
 
   // Sync form when opening for add vs edit.
@@ -32,6 +40,8 @@ export default function TransactionModal() {
       setCategory(editing.category === 'Income' ? 'Food' : editing.category);
       setDate(editing.date.slice(0, 10));
       setDescription(editing.description ?? '');
+      setIsRecurring(editing.isRecurring);
+      setFrequency((editing.frequency as Frequency) || 'monthly');
     } else {
       setType('expense');
       setAmount('0');
@@ -39,6 +49,8 @@ export default function TransactionModal() {
       setCategory('Food');
       setDate(new Date().toISOString().slice(0, 10));
       setDescription('');
+      setIsRecurring(false);
+      setFrequency('monthly');
     }
   }, [modalOpen, editing]);
 
@@ -65,6 +77,8 @@ export default function TransactionModal() {
       amount: numeric,
       type,
       description: description.trim() || null,
+      isRecurring,
+      frequency: isRecurring ? frequency : null,
     };
     try {
       if (editing) await editTransaction(editing.id, input);
@@ -166,6 +180,63 @@ export default function TransactionModal() {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Recurring */}
+            <div className="mb-3 rounded-2xl border border-line bg-surface-2/60 p-3">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isRecurring}
+                onClick={() => setIsRecurring((v) => !v)}
+                className="flex w-full select-none items-center justify-between gap-3"
+              >
+                <span className="flex items-center gap-2.5 text-left">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-600">
+                    <Repeat size={17} />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold">Recurring {type}</span>
+                    <span className="block text-xs text-ink-soft">Repeats automatically over time</span>
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    'relative h-7 w-12 shrink-0 rounded-full transition-colors',
+                    isRecurring ? 'bg-brand-500' : 'bg-line'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all',
+                      isRecurring ? 'left-6' : 'left-1'
+                    )}
+                  />
+                </span>
+              </button>
+
+              {isRecurring && (
+                <div className="mt-3">
+                  <p className="label">How often?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {FREQUENCIES.map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFrequency(f.id)}
+                        className={cn(
+                          'select-none rounded-xl py-2.5 text-sm font-semibold transition active:scale-[0.98]',
+                          frequency === f.id
+                            ? 'bg-brand-gradient text-white shadow-glow'
+                            : 'bg-surface text-ink-soft hover:bg-surface-2'
+                        )}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Numeric keypad */}

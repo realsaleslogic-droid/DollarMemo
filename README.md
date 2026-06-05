@@ -1,6 +1,6 @@
-# FlowTrack — Premium Personal Finance Dashboard
+# DollarMemo — Premium Personal Finance Dashboard
 
-A fully-functional, investor-ready personal finance web app demo. FlowTrack
+A fully-functional, investor-ready personal finance web app demo. DollarMemo
 looks and behaves like a real fintech platform — tracking income & expenses,
 analyzing spending, managing recurring subscriptions, and generating
 statements — all powered by **realistic seeded demo data** (no bank
@@ -27,7 +27,7 @@ integration required).
 
 ## 🚀 Getting started
 
-FlowTrack uses **Supabase** for auth + database. Full setup (env, the one-time
+DollarMemo uses **Supabase** for auth + database. Full setup (env, the one-time
 `transactions` table SQL, auth settings) is in **[SUPABASE.md](./SUPABASE.md)**.
 
 ```bash

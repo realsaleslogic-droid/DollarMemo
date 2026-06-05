@@ -17,7 +17,7 @@ export default function Sidebar() {
       <Link href="/dashboard" className="mb-8 flex items-center gap-2.5 px-2">
         <BrandLogo className="h-10 w-10" />
         <div>
-          <p className="text-lg font-extrabold leading-none tracking-tight">FlowTrack</p>
+          <p className="text-lg font-extrabold leading-none tracking-tight">DollarMemo</p>
           <p className="text-[11px] font-medium text-ink-soft">Personal Finance</p>
         </div>
       </Link>

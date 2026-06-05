@@ -47,20 +47,21 @@ export default function TransactionRow({
       </div>
 
       {showActions && (
-        <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+        // Always visible on touch (no hover); reveal on hover for pointer devices.
+        <div className="flex items-center gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
           <button
             onClick={() => onEdit?.(tx)}
-            className="grid h-8 w-8 place-items-center rounded-lg text-ink-soft hover:bg-surface hover:text-brand-600"
+            className="grid h-9 w-9 place-items-center rounded-lg text-ink-soft transition hover:bg-surface hover:text-brand-600 active:scale-95"
             aria-label="Edit"
           >
-            <Pencil size={15} />
+            <Pencil size={16} />
           </button>
           <button
             onClick={() => onDelete?.(tx.id)}
-            className="grid h-8 w-8 place-items-center rounded-lg text-ink-soft hover:bg-surface hover:text-expense"
+            className="grid h-9 w-9 place-items-center rounded-lg text-ink-soft transition hover:bg-surface hover:text-expense active:scale-95"
             aria-label="Delete"
           >
-            <Trash2 size={15} />
+            <Trash2 size={16} />
           </button>
         </div>
       )}
