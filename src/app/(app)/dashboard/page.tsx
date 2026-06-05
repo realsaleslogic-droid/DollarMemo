@@ -1,0 +1,144 @@
+'use client';
+
+import { useMemo } from 'react';
+import Link from 'next/link';
+import { TrendingUp, TrendingDown, Wallet, ArrowRight, Plus } from 'lucide-react';
+import Topbar from '@/components/Topbar';
+import StatCard from '@/components/StatCard';
+import Segmented from '@/components/Segmented';
+import TransactionRow from '@/components/TransactionRow';
+import CategoryPie from '@/components/charts/CategoryPie';
+import TrendChart from '@/components/charts/TrendChart';
+import { StatGridSkeleton, ListSkeleton } from '@/components/Skeletons';
+import { useReady } from '@/lib/useReady';
+import { useFinanceStore } from '@/store/useFinanceStore';
+import { useUIStore } from '@/store/useUIStore';
+import {
+  periodRange,
+  previousRange,
+  filterByRange,
+  summarize,
+  spendingByCategory,
+  spendingTrend,
+  recentTransactions,
+  pctChange,
+} from '@/lib/analytics';
+import type { Period, Granularity } from '@/lib/types';
+
+const PERIOD_OPTS: { value: Period; label: string }[] = [
+  { value: 'today', label: 'Today' },
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' },
+  { value: 'year', label: 'Year' },
+];
+const GRAN_OPTS: { value: Granularity; label: string }[] = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+];
+
+export default function DashboardPage() {
+  const { transactions, ready } = useReady();
+  const { period, setPeriod, granularity, setGranularity } = useFinanceStore();
+  const openEdit = useUIStore((s) => s.openEdit);
+  const openAdd = useUIStore((s) => s.openAdd);
+  const removeTransaction = useFinanceStore((s) => s.removeTransaction);
+
+  const data = useMemo(() => {
+    const range = filterByRange(transactions, periodRange(period));
+    const prev = filterByRange(transactions, previousRange(period));
+    const cur = summarize(range);
+    const prevSum = summarize(prev);
+    return {
+      cur,
+      deltaIncome: pctChange(cur.income, prevSum.income),
+      deltaExpenses: pctChange(cur.expenses, prevSum.expenses),
+      deltaNet: pctChange(cur.net, prevSum.net),
+      byCategory: spendingByCategory(range),
+      trend: spendingTrend(transactions, granularity),
+      recent: recentTransactions(transactions, 5),
+    };
+  }, [transactions, period, granularity]);
+
+  return (
+    <>
+      <Topbar title="Dashboard" subtitle="Your money at a glance" />
+
+      {/* Period switcher */}
+      <div className="mb-5 mt-1 flex items-center justify-between">
+        <h2 className="text-lg font-bold lg:hidden">Overview</h2>
+        <div className="ml-auto">
+          <Segmented options={PERIOD_OPTS} value={period} onChange={setPeriod} />
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      {ready ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard label={`Income (${period})`} value={data.cur.income} icon={TrendingUp} accent="income" delta={data.deltaIncome} index={0} />
+          <StatCard label={`Spending (${period})`} value={data.cur.expenses} icon={TrendingDown} accent="expense" delta={data.deltaExpenses} index={1} />
+          <StatCard label="Net Cash Flow" value={data.cur.net} icon={Wallet} accent="brand" delta={data.deltaNet} index={2} />
+        </div>
+      ) : (
+        <StatGridSkeleton />
+      )}
+
+      {/* Analytics */}
+      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
+        {/* Category pie */}
+        <div className="card p-5 lg:col-span-2">
+          <h3 className="mb-1 font-bold">Spending by Category</h3>
+          <p className="mb-2 text-xs text-ink-soft">Distribution for the selected period</p>
+          {ready ? <CategoryPie data={data.byCategory} /> : <div className="skeleton h-[260px]" />}
+          {ready && (
+            <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {data.byCategory.slice(0, 6).map((c) => (
+                <li key={c.category} className="flex items-center gap-2 text-xs">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
+                  <span className="flex-1 truncate text-ink-soft">{c.label}</span>
+                  <span className="font-semibold tabular-nums">{c.pct.toFixed(0)}%</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Trend */}
+        <div className="card p-5 lg:col-span-3">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div>
+              <h3 className="font-bold">Spending Trend</h3>
+              <p className="text-xs text-ink-soft">How your spending moves over time</p>
+            </div>
+            <Segmented options={GRAN_OPTS} value={granularity} onChange={setGranularity} />
+          </div>
+          {ready ? <TrendChart data={data.trend} /> : <div className="skeleton h-[280px]" />}
+        </div>
+      </div>
+
+      {/* Recent activity */}
+      <div className="mt-5 card p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-bold">Recent Activity</h3>
+          <div className="flex items-center gap-2">
+            <button onClick={openAdd} className="btn-soft py-1.5 text-xs">
+              <Plus size={15} /> Add
+            </button>
+            <Link href="/transactions" className="btn-ghost py-1.5 text-xs">
+              View All <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+        {ready ? (
+          <div className="space-y-0.5">
+            {data.recent.map((tx) => (
+              <TransactionRow key={tx.id} tx={tx} showActions onEdit={openEdit} onDelete={removeTransaction} />
+            ))}
+          </div>
+        ) : (
+          <ListSkeleton rows={5} />
+        )}
+      </div>
+    </>
+  );
+}
