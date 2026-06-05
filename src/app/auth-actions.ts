@@ -68,6 +68,49 @@ export async function logout() {
   redirect('/');
 }
 
+/**
+ * Send a password-reset email. The link returns the user to /auth/callback,
+ * which exchanges the recovery code for a session and forwards to
+ * /reset-password where they choose a new password.
+ */
+export async function requestPasswordReset(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const email = String(formData.get('email') ?? '').toLowerCase().trim();
+  if (!EMAIL_RE.test(email)) return { error: 'Enter a valid email address.' };
+
+  const supabase = createClient();
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin()}/auth/callback?redirect=/reset-password`,
+  });
+
+  // Always report success so we don't reveal which emails have accounts.
+  return {
+    message: 'If an account exists for that email, a password reset link is on its way. Check your inbox.',
+  };
+}
+
+/**
+ * Set a new password for the user. Requires the recovery session established by
+ * the reset-email link. Updates the password in Supabase Auth.
+ */
+export async function updatePassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm') ?? '');
+
+  if (password.length < 8) return { error: 'Password must be at least 8 characters.' };
+  if (password !== confirm) return { error: 'Passwords do not match.' };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'Your reset link is invalid or has expired. Request a new one.' };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+
+  redirect('/dashboard');
+}
+
 /** Update the signed-in user's display name (stored in auth user_metadata). */
 export async function updateProfile(name: string): Promise<{ name: string }> {
   const trimmed = name.trim();
