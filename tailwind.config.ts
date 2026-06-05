@@ -10,19 +10,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // FlowTrack brand — deep teal/emerald inspired by the reference design.
+        // DollarMemo brand — driven by CSS variables so the accent color is
+        // user-selectable at runtime (see globals.css [data-accent] + Settings).
+        // Default values (teal) live in globals.css :root.
         brand: {
-          50: '#eafaf5',
-          100: '#cdf2e6',
-          200: '#9fe6d2',
-          300: '#66d4ba',
-          400: '#34bd9f',
-          500: '#14a085', // primary
-          600: '#0d8570',
-          700: '#0c6a5b',
-          800: '#0d5449',
-          900: '#0c453d',
-          950: '#042b26',
+          50: 'rgb(var(--brand-50) / <alpha-value>)',
+          100: 'rgb(var(--brand-100) / <alpha-value>)',
+          200: 'rgb(var(--brand-200) / <alpha-value>)',
+          300: 'rgb(var(--brand-300) / <alpha-value>)',
+          400: 'rgb(var(--brand-400) / <alpha-value>)',
+          500: 'rgb(var(--brand-500) / <alpha-value>)', // primary
+          600: 'rgb(var(--brand-600) / <alpha-value>)',
+          700: 'rgb(var(--brand-700) / <alpha-value>)',
+          800: 'rgb(var(--brand-800) / <alpha-value>)',
+          900: 'rgb(var(--brand-900) / <alpha-value>)',
+          950: 'rgb(var(--brand-950) / <alpha-value>)',
         },
         // Semantic money colors
         income: '#16b981',
@@ -43,12 +45,14 @@ const config: Config = {
       boxShadow: {
         card: '0 1px 2px rgba(16,24,40,0.04), 0 8px 24px -12px rgba(16,24,40,0.12)',
         'card-lg': '0 12px 40px -12px rgba(16,24,40,0.18)',
-        glow: '0 10px 40px -10px rgba(20,160,133,0.55)',
+        glow: '0 10px 40px -10px rgb(var(--brand-500) / 0.55)',
         'inner-glow': 'inset 0 1px 0 rgba(255,255,255,0.12)',
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #14a085 0%, #0d6a5b 55%, #0c453d 100%)',
-        'brand-radial': 'radial-gradient(120% 120% at 0% 0%, #1bb898 0%, #0d6a5b 45%, #0a3f38 100%)',
+        'brand-gradient':
+          'linear-gradient(135deg, rgb(var(--brand-500)) 0%, rgb(var(--brand-700)) 55%, rgb(var(--brand-900)) 100%)',
+        'brand-radial':
+          'radial-gradient(120% 120% at 0% 0%, rgb(var(--brand-400)) 0%, rgb(var(--brand-700)) 45%, rgb(var(--brand-900)) 100%)',
       },
       keyframes: {
         'fade-up': {

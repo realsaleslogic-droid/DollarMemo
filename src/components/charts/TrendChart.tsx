@@ -21,8 +21,8 @@ export default function TrendChart({ data }: { data: TrendPoint[] }) {
       <BarChart data={data} margin={{ top: 10, right: 4, left: -16, bottom: 0 }} barCategoryGap="22%">
         <defs>
           <linearGradient id="barBrand" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1bb898" />
-            <stop offset="100%" stopColor="#0d6a5b" />
+            <stop offset="0%" stopColor="rgb(var(--brand-400))" />
+            <stop offset="100%" stopColor="rgb(var(--brand-700))" />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 6" stroke="rgb(var(--line))" vertical={false} />
@@ -52,7 +52,7 @@ export default function TrendChart({ data }: { data: TrendPoint[] }) {
         />
         <Bar dataKey="expenses" radius={[8, 8, 4, 4]} maxBarSize={42}>
           {data.map((d, i) => (
-            <Cell key={i} fill={d.expenses >= max * 0.999 ? '#0d6a5b' : 'url(#barBrand)'} />
+            <Cell key={i} fill={d.expenses >= max * 0.999 ? 'rgb(var(--brand-700))' : 'url(#barBrand)'} />
           ))}
         </Bar>
       </BarChart>

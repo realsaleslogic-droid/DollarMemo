@@ -11,6 +11,86 @@
     --ink-soft: 100 116 139;
     --line: 226 232 240;
     --page: 240 244 246;
+
+    /* Brand accent scale (R G B). Default = teal; overridden by [data-accent]. */
+    --brand-50: 234 250 245;
+    --brand-100: 205 242 230;
+    --brand-200: 159 230 210;
+    --brand-300: 102 212 186;
+    --brand-400: 52 189 159;
+    --brand-500: 20 160 133;
+    --brand-600: 13 133 112;
+    --brand-700: 12 106 91;
+    --brand-800: 13 84 73;
+    --brand-900: 12 69 61;
+    --brand-950: 4 43 38;
+  }
+
+  /* ---- Selectable accent themes (Settings → Appearance) ---- */
+  [data-accent='indigo'] {
+    --brand-50: 238 242 255;
+    --brand-100: 224 231 255;
+    --brand-200: 199 210 254;
+    --brand-300: 165 180 252;
+    --brand-400: 129 140 248;
+    --brand-500: 99 102 241;
+    --brand-600: 79 70 229;
+    --brand-700: 67 56 202;
+    --brand-800: 55 48 163;
+    --brand-900: 49 46 129;
+    --brand-950: 30 27 75;
+  }
+  [data-accent='blue'] {
+    --brand-50: 239 246 255;
+    --brand-100: 219 234 254;
+    --brand-200: 191 219 254;
+    --brand-300: 147 197 253;
+    --brand-400: 96 165 250;
+    --brand-500: 59 130 246;
+    --brand-600: 37 99 235;
+    --brand-700: 29 78 216;
+    --brand-800: 30 64 175;
+    --brand-900: 30 58 138;
+    --brand-950: 23 37 84;
+  }
+  [data-accent='violet'] {
+    --brand-50: 245 243 255;
+    --brand-100: 237 233 254;
+    --brand-200: 221 214 254;
+    --brand-300: 196 181 253;
+    --brand-400: 167 139 250;
+    --brand-500: 139 92 246;
+    --brand-600: 124 58 237;
+    --brand-700: 109 40 217;
+    --brand-800: 91 33 182;
+    --brand-900: 76 29 149;
+    --brand-950: 46 16 101;
+  }
+  [data-accent='pink'] {
+    --brand-50: 253 242 248;
+    --brand-100: 252 231 243;
+    --brand-200: 251 207 232;
+    --brand-300: 249 168 212;
+    --brand-400: 244 114 182;
+    --brand-500: 236 72 153;
+    --brand-600: 219 39 119;
+    --brand-700: 190 24 93;
+    --brand-800: 157 23 77;
+    --brand-900: 131 24 67;
+    --brand-950: 80 7 36;
+  }
+  [data-accent='amber'] {
+    --brand-50: 255 251 235;
+    --brand-100: 254 243 199;
+    --brand-200: 253 230 138;
+    --brand-300: 252 211 77;
+    --brand-400: 251 191 36;
+    --brand-500: 245 158 11;
+    --brand-600: 217 119 6;
+    --brand-700: 180 83 9;
+    --brand-800: 146 64 14;
+    --brand-900: 120 53 15;
+    --brand-950: 69 26 3;
   }
 
   .dark {
@@ -77,14 +157,14 @@
     height: 460px;
     top: -160px;
     right: -120px;
-    background: radial-gradient(circle, #1bb898 0%, transparent 70%);
+    background: radial-gradient(circle, rgb(var(--brand-400)) 0%, transparent 70%);
   }
   .app-bg::after {
     width: 520px;
     height: 520px;
     bottom: -220px;
     left: -160px;
-    background: radial-gradient(circle, #0d6a5b 0%, transparent 70%);
+    background: radial-gradient(circle, rgb(var(--brand-700)) 0%, transparent 70%);
     opacity: 0.3;
   }
 }

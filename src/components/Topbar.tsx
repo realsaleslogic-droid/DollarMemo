@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, LogOut, ChevronDown, Sparkles } from 'lucide-react';
+import { Plus, LogOut, ChevronDown, Sparkles, Settings } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import BrandLogo from './BrandLogo';
 import { useUIStore } from '@/store/useUIStore';
@@ -39,6 +39,13 @@ function AccountMenu() {
             <p className="truncate text-sm font-semibold">{user.name || 'Account'}</p>
             <p className="truncate text-xs text-ink-soft">{user.email}</p>
           </div>
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2 border-b border-line px-4 py-3 text-sm font-medium text-ink-soft transition hover:bg-surface-2 hover:text-ink"
+          >
+            <Settings size={16} /> Settings
+          </Link>
           <form action={logout}>
             <button type="submit" className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-ink-soft transition hover:bg-surface-2 hover:text-expense">
               <LogOut size={16} /> Log out
@@ -83,7 +90,16 @@ export default function Topbar({ title, subtitle }: { title: string; subtitle?: 
         {mode === 'db' ? (
           <AccountMenu />
         ) : (
-          <Link href="/signup" className="btn-ghost sm:hidden">Sign up</Link>
+          <>
+            <Link
+              href="/settings"
+              aria-label="Settings"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-surface text-ink-soft transition hover:bg-surface-2 hover:text-ink"
+            >
+              <Settings size={18} />
+            </Link>
+            <Link href="/signup" className="btn-ghost sm:hidden">Sign up</Link>
+          </>
         )}
       </div>
     </header>

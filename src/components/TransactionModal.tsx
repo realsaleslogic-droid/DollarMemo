@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/useUIStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { EXPENSE_CATEGORIES } from '@/lib/categories';
 import type { Frequency } from '@/lib/types';
+import { currencySymbol } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del'];
@@ -139,7 +140,7 @@ export default function TransactionModal() {
             <div className="mb-4 rounded-3xl bg-brand-radial p-5 text-center text-white shadow-glow">
               <p className="text-xs font-medium uppercase tracking-wider text-white/70">Amount</p>
               <p className="mt-1 text-4xl font-extrabold tabular-nums">
-                <span className="align-top text-2xl">$</span>
+                <span className="align-top text-2xl">{currencySymbol()}</span>
                 {amount}
               </p>
             </div>

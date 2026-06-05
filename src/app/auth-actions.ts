@@ -67,3 +67,17 @@ export async function logout() {
   await supabase.auth.signOut();
   redirect('/');
 }
+
+/** Update the signed-in user's display name (stored in auth user_metadata). */
+export async function updateProfile(name: string): Promise<{ name: string }> {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('Please enter a name.');
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  const { error } = await supabase.auth.updateUser({ data: { name: trimmed } });
+  if (error) throw new Error(error.message);
+  return { name: trimmed };
+}

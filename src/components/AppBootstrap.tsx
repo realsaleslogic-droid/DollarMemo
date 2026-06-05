@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { useFinanceStore, loadDemoData, type DataMode } from '@/store/useFinanceStore';
 import { useSessionStore, type SessionUser } from '@/store/useSessionStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { generateSampleTransactions } from '@/lib/sampleData';
 import type { Transaction } from '@/lib/types';
 
@@ -23,6 +24,7 @@ export default function AppBootstrap({
   const done = useRef(false);
   if (!done.current) {
     done.current = true;
+    useSettingsStore.getState().hydrateSettings();
     if (mode === 'db') {
       useFinanceStore.getState().hydrate(transactions, 'db');
     } else {
