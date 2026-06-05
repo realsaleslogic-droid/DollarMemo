@@ -40,16 +40,16 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
           <input id="email" name="email" type="email" autoComplete="email" required className="input" placeholder="you@example.com" />
         </div>
         <div>
-          <div className="flex items-center justify-between">
-            <label className="label" htmlFor="password">Password</label>
+          <label className="label" htmlFor="password">Password</label>
+          <input id="password" name="password" type="password" autoComplete="current-password" required className="input" placeholder="••••••••" />
+          <div className="mt-1.5 text-right">
             <Link
               href="/forgot-password"
-              className="mb-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-300"
+              className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-300"
             >
               Forgot password?
             </Link>
           </div>
-          <input id="password" name="password" type="password" autoComplete="current-password" required className="input" placeholder="••••••••" />
         </div>
         {state?.error && <p className="text-sm font-medium text-expense">{state.error}</p>}
         {state?.message && <p className="text-sm font-medium text-income">{state.message}</p>}
