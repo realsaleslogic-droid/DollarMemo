@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="16" fill="#dcf0e8"/>
+  <g transform="rotate(8 32 32)" fill="#dcf0e8" stroke="#14463f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 24 H38 A3 3 0 0 1 41 27 V47 A3 3 0 0 1 38 50 H21 A3 3 0 0 1 18 47 V27 A3 3 0 0 1 21 24 Z"/>
+    <path d="M28 13 H38 L45 20 V43 A3 3 0 0 1 42 46 H25 A3 3 0 0 1 22 43 V16 A3 3 0 0 1 25 13 Z"/>
+    <path d="M38 13 L45 20 H38 Z" fill="#5cc3ac"/>
+    <text x="33.5" y="39" text-anchor="middle" font-size="25" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" fill="#14463f" stroke="none">$</text>
+  </g>
+</svg>

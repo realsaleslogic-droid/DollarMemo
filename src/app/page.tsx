@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, BarChart3, ShieldCheck, Repeat, FileDown, PlayCircle } from 'lucide-react';
 import HeroCharacter from '@/components/HeroCharacter';
+import BrandLogo from '@/components/BrandLogo';
 import DemoButton from '@/components/DemoButton';
 
 const FEATURES = [
@@ -17,7 +18,7 @@ export default function Landing() {
         {/* Nav */}
         <header className="flex items-center justify-between py-6">
           <div className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow">$</span>
+            <BrandLogo className="h-10 w-10" />
             <span className="text-xl font-extrabold tracking-tight">FlowTrack</span>
           </div>
           <div className="flex items-center gap-2">

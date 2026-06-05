@@ -72,6 +72,9 @@ npm run build && npm start
   export.
 - **/recurring** — Auto-detected subscriptions & bills as cards (monthly /
   annual cost, frequency, next billing date) plus subscription analytics.
+- **/accounts** — Link real banks & credit cards via **Plaid**; transactions
+  sync in, get categorized, and flow through every view. Setup in
+  **[PLAID.md](./PLAID.md)**.
 
 ## 🏗️ Architecture
 

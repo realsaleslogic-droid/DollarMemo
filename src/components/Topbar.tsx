@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Wallet, LogOut, ChevronDown, Sparkles } from 'lucide-react';
+import { Plus, LogOut, ChevronDown, Sparkles } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import BrandLogo from './BrandLogo';
 import { useUIStore } from '@/store/useUIStore';
 import { useSessionStore } from '@/store/useSessionStore';
 import { logout } from '@/app/auth-actions';
@@ -56,9 +57,7 @@ export default function Topbar({ title, subtitle }: { title: string; subtitle?: 
   return (
     <header className="sticky top-0 z-30 -mx-4 mb-2 flex items-center justify-between gap-3 border-b border-line bg-page/80 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:bg-transparent lg:backdrop-blur-none">
       <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-gradient text-white shadow-glow">
-          <Wallet size={18} />
-        </span>
+        <BrandLogo className="h-9 w-9" />
       </Link>
 
       <div className="hidden flex-col lg:flex">

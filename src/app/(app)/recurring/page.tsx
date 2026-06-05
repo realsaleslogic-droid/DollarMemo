@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarClock, Repeat, Wallet, Layers } from 'lucide-react';
 import Topbar from '@/components/Topbar';
-import CategoryIcon from '@/components/CategoryIcon';
+import MerchantAvatar from '@/components/MerchantAvatar';
 import { useReady } from '@/lib/useReady';
 import { detectSubscriptions, type Subscription } from '@/lib/analytics';
 import { formatMoney, formatDate } from '@/lib/format';
@@ -108,7 +108,7 @@ function SubscriptionCard({ sub, index }: { sub: Subscription; index: number }) 
       <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brand-500/10 blur-2xl transition group-hover:bg-brand-500/20" />
 
       <div className="flex items-start justify-between">
-        <CategoryIcon category={sub.category} className="h-12 w-12" size={22} />
+        <MerchantAvatar merchant={sub.name} category={sub.category} className="h-12 w-12" size={22} />
         <span className="stat-pill bg-brand-500/10 capitalize text-brand-700 dark:text-brand-300">{sub.frequency}</span>
       </div>
 

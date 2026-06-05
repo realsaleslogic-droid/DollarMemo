@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Wallet } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 import { NAV_ITEMS } from './nav';
 import { cn } from '@/lib/utils';
 import { useSessionStore } from '@/store/useSessionStore';
@@ -14,9 +15,7 @@ export default function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface/80 px-4 py-6 backdrop-blur-xl lg:flex">
       <Link href="/dashboard" className="mb-8 flex items-center gap-2.5 px-2">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow">
-          <Wallet size={20} />
-        </span>
+        <BrandLogo className="h-10 w-10" />
         <div>
           <p className="text-lg font-extrabold leading-none tracking-tight">FlowTrack</p>
           <p className="text-[11px] font-medium text-ink-soft">Personal Finance</p>

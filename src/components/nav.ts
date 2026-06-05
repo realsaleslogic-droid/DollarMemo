@@ -1,4 +1,4 @@
-import { LayoutDashboard, ArrowLeftRight, PieChart, Repeat, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, PieChart, Repeat, Landmark, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   href: string;
@@ -11,4 +11,5 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { href: '/reports', label: 'Reports', icon: PieChart },
   { href: '/recurring', label: 'Recurring', icon: Repeat },
+  { href: '/accounts', label: 'Accounts', icon: Landmark },
 ];
