@@ -70,18 +70,39 @@ function normalize(name: string): string {
 }
 
 /** Resolve a merchant name to a known brand, or null if it isn't recognizable. */
+// Payment-processor logos, used only as a fallback for "(via X)" charges whose
+// underlying payee isn't a recognizable brand (e.g. a PayPal/Venmo payment to a
+// person). Kept separate from BRANDS so e.g. "Times Square Diner" never matches.
+const PROCESSOR_BRANDS: Record<string, Brand> = {
+  paypal: { domain: 'paypal.com', color: '#003087' },
+  venmo: { domain: 'venmo.com', color: '#3D95CE' },
+  cashapp: { domain: 'cash.app', color: '#00D632' },
+  square: { domain: 'squareup.com', color: '#000000' },
+  zelle: { domain: 'zellepay.com', color: '#6D1ED4' },
+  toast: { domain: 'toasttab.com', color: '#FF4C00' },
+  googlepay: { domain: 'pay.google.com', color: '#4285F4' },
+};
+
 export function brandFor(merchant: string): Brand | null {
-  // Drop a "(via PayPal)" style processor suffix so the logo reflects the real
-  // merchant (e.g. "Apple (via PayPal)" -> Apple's logo, not PayPal's).
+  // Match the real merchant first, ignoring a "(via PayPal)" style suffix
+  // (e.g. "Apple (via PayPal)" -> Apple's logo, not PayPal's).
   const primary = merchant.replace(/\s*\(via[^)]*\)\s*/gi, ' ');
   const m = normalize(primary);
-  if (!m) return null;
-  for (const key of KEYS) {
-    if (m === key) return BRANDS[key];
-    // Require a reasonably specific match: long keys can appear anywhere in the
-    // name; short keys (e.g. "att", "pge", "cvs") must anchor the start to avoid
-    // accidental hits inside unrelated words.
-    if (m.includes(key) && (key.length >= 4 || m.startsWith(key))) return BRANDS[key];
+  if (m) {
+    for (const key of KEYS) {
+      if (m === key) return BRANDS[key];
+      // Require a reasonably specific match: long keys can appear anywhere in
+      // the name; short keys (e.g. "att", "pge", "cvs") must anchor the start to
+      // avoid accidental hits inside unrelated words.
+      if (m.includes(key) && (key.length >= 4 || m.startsWith(key))) return BRANDS[key];
+    }
+  }
+
+  // No recognizable merchant — fall back to the payment processor's logo.
+  const via = merchant.match(/\(via\s+([^)]+)\)/i);
+  if (via) {
+    const vm = normalize(via[1]);
+    if (PROCESSOR_BRANDS[vm]) return PROCESSOR_BRANDS[vm];
   }
   return null;
 }
