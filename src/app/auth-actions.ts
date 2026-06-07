@@ -78,7 +78,7 @@ export async function requestPasswordReset(_prev: AuthState, formData: FormData)
   if (!EMAIL_RE.test(email)) return { error: 'Enter a valid email address.' };
 
   const supabase = createClient();
-  // The email template (see PLAID.md / Supabase Auth → Emails) should point at
+  // The email template (see AUTH.md / Supabase Auth → Emails) should point at
   // /auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password
   // which verifies server-side. redirectTo just needs to be an allowed URL.
   await supabase.auth.resetPasswordForEmail(email, {

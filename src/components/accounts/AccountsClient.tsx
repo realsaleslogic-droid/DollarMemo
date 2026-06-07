@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Landmark, RefreshCw, Trash2, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import ConnectBankButton from './ConnectBankButton';
-import { listConnections, syncTransactions, removeConnection, type Connection } from '@/app/plaid-actions';
+import { listConnections, syncTransactions, removeConnection, type Connection } from '@/app/stripe-actions';
 import { formatDate } from '@/lib/format';
 
 export default function AccountsClient({
@@ -35,8 +35,7 @@ export default function AccountsClient({
     setMessage(null);
     try {
       const r = await syncTransactions();
-      const total = r.added + r.modified;
-      setMessage(total > 0 ? `Synced ${total} transaction${total === 1 ? '' : 's'}.` : 'Up to date — no new transactions.');
+      setMessage(r.added > 0 ? `Synced ${r.added} transaction${r.added === 1 ? '' : 's'}.` : 'Up to date — no new transactions.');
       await refresh();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Sync failed.');
@@ -67,13 +66,13 @@ export default function AccountsClient({
           <div>
             <h3 className="font-bold">Bank sync isn&apos;t configured yet</h3>
             <p className="text-sm text-ink-soft">
-              Add your Plaid + Supabase service-role keys to enable connecting real accounts.
+              Add your Stripe + Supabase service-role keys to enable connecting real accounts.
             </p>
           </div>
         </div>
         <p className="mt-4 rounded-xl bg-surface-2 px-3 py-2 text-xs text-ink-soft">
-          See <span className="font-semibold text-ink">PLAID.md</span> for the setup steps (env vars and the one-time
-          <span className="font-semibold text-ink"> supabase/sql/plaid.sql</span> migration).
+          See <span className="font-semibold text-ink">STRIPE.md</span> for the setup steps (env vars and the one-time
+          <span className="font-semibold text-ink"> supabase/sql/stripe.sql</span> migration).
         </p>
       </div>
     );
@@ -89,7 +88,7 @@ export default function AccountsClient({
           <div>
             <h3 className="font-bold">Connect your accounts</h3>
             <p className="text-sm text-ink-soft">
-              Securely link a bank or credit card. Transactions sync in automatically and get categorized.
+              Securely link a bank or credit card with Stripe. Transactions sync in automatically and get categorized.
             </p>
           </div>
         </div>
@@ -139,7 +138,10 @@ export default function AccountsClient({
                   <Landmark size={20} />
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{c.institutionName ?? 'Linked institution'}</p>
+                  <p className="truncate font-semibold">
+                    {c.institutionName ?? 'Linked institution'}
+                    {c.last4 ? <span className="text-ink-soft"> ···· {c.last4}</span> : null}
+                  </p>
                   <p className="flex items-center gap-1.5 text-xs text-ink-soft">
                     {c.status === 'error' ? (
                       <>
@@ -171,8 +173,8 @@ export default function AccountsClient({
 
       <p className="flex items-center gap-2 px-1 text-xs text-ink-soft">
         <ShieldCheck size={14} className="shrink-0 text-income" />
-        Bank credentials are handled by Plaid and never touch DollarMemo. Access tokens are encrypted and stored
-        server-side only.
+        Bank credentials are handled by Stripe and never touch DollarMemo. We store only a reference to each linked
+        account, used server-side to sync transactions.
       </p>
     </div>
   );

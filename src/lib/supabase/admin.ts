@@ -3,7 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 // Service-role Supabase client. Bypasses row-level security, so it is used ONLY
 // on the server for privileged operations the user's session cannot do — namely
-// reading/writing the plaid_items table that holds bank access tokens.
+// reading/writing the stripe_customers / stripe_accounts tables.
 //
 // NEVER import this from a Client Component. Always re-check the user's identity
 // (with the cookie-bound client) before acting on their behalf with this client.

@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import Topbar from '@/components/Topbar';
-import AccountsClient from '@/components/plaid/AccountsClient';
+import AccountsClient from '@/components/accounts/AccountsClient';
 import { createClient } from '@/lib/supabase/server';
-import { isPlaidConfigured } from '@/lib/plaid/config';
-import { listConnections, type Connection } from '@/app/plaid-actions';
+import { isStripeConfigured } from '@/lib/stripe/config';
+import { listConnections, type Connection } from '@/app/stripe-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +39,7 @@ export default async function AccountsPage() {
     );
   }
 
-  const configured = isPlaidConfigured();
+  const configured = isStripeConfigured();
   let connections: Connection[] = [];
   if (configured) {
     try {
