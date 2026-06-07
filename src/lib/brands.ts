@@ -83,6 +83,39 @@ const PROCESSOR_BRANDS: Record<string, Brand> = {
   googlepay: { domain: 'pay.google.com', color: '#4285F4' },
 };
 
+// Banks, recognized from their name or a signature account-product name. Used
+// to give account transfers the user's bank logo.
+const BANK_BRANDS: { tokens: string[]; brand: Brand }[] = [
+  { tokens: ['wells fargo', 'prime checking', 'everyday checking', 'way2save', 'portfolio by wells'], brand: { domain: 'wellsfargo.com', color: '#D71E2B' } },
+  { tokens: ['chase', 'total checking', 'premier plus', 'sapphire checking'], brand: { domain: 'chase.com', color: '#117ACA' } },
+  { tokens: ['bank of america', 'bofa', 'bankamerica', 'advantage plus', 'advantage savings'], brand: { domain: 'bankofamerica.com', color: '#E31837' } },
+  { tokens: ['capital one', '360 checking', '360 performance', 'performance savings'], brand: { domain: 'capitalone.com', color: '#004977' } },
+  { tokens: ['citibank', 'citi '], brand: { domain: 'citi.com', color: '#056DAE' } },
+  { tokens: ['u.s. bank', 'us bank', 'usbank'], brand: { domain: 'usbank.com', color: '#0C2074' } },
+  { tokens: ['pnc', 'virtual wallet'], brand: { domain: 'pnc.com', color: '#F58025' } },
+  { tokens: ['ally '], brand: { domain: 'ally.com', color: '#5B1865' } },
+  { tokens: ['chime'], brand: { domain: 'chime.com', color: '#1EC677' } },
+  { tokens: ['sofi'], brand: { domain: 'sofi.com', color: '#00A0DF' } },
+  { tokens: ['td bank', 'td convenience'], brand: { domain: 'td.com', color: '#54B848' } },
+  { tokens: ['truist'], brand: { domain: 'truist.com', color: '#2D1F5B' } },
+  { tokens: ['navy federal', 'nfcu'], brand: { domain: 'navyfederal.org', color: '#003366' } },
+  { tokens: ['usaa'], brand: { domain: 'usaa.com', color: '#13294B' } },
+];
+
+/** Match a bank from text (a bank name or signature account-product name). */
+export function bankBrandFor(text: string): Brand | null {
+  const t = (text || '').toLowerCase();
+  for (const b of BANK_BRANDS) {
+    if (b.tokens.some((tok) => t.includes(tok))) return b.brand;
+  }
+  return null;
+}
+
+/** True for account-to-account transfer rows (e.g. "Transfer from Savings"). */
+export function isTransfer(merchant: string): boolean {
+  return /^transfer\b/i.test((merchant || '').trim());
+}
+
 export function brandFor(merchant: string): Brand | null {
   // Match the real merchant first, ignoring a "(via PayPal)" style suffix
   // (e.g. "Apple (via PayPal)" -> Apple's logo, not PayPal's).
@@ -103,6 +136,12 @@ export function brandFor(merchant: string): Brand | null {
   if (via) {
     const vm = normalize(via[1]);
     if (PROCESSOR_BRANDS[vm]) return PROCESSOR_BRANDS[vm];
+  }
+
+  // Account transfers -> the user's bank logo when we can recognize it.
+  if (isTransfer(merchant)) {
+    const bank = bankBrandFor(merchant);
+    if (bank) return bank;
   }
   return null;
 }
