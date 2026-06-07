@@ -255,6 +255,24 @@ function isKnownRecurring(normalizedKey: string): boolean {
   return KNOWN_RECURRING.some((t) => k.includes(t));
 }
 
+// Subscriptions are modest, steady amounts. This guards the "known brand from
+// the first charge" path against one-off purchases that share a brand name —
+// e.g. a $599 one-time software license, or two very different Apple charges
+// (a movie rental vs. iCloud). Once 3+ regular charges exist, real cadence
+// detection takes over and this is bypassed.
+const KNOWN_SUB_MAX_CHARGE = 300; // a single charge above this is treated as a one-off
+
+function looksLikeKnownSubscription(items: Transaction[]): boolean {
+  if (items.length > 2) return false; // enough data existed but no cadence => not regular
+  const amounts = items.map((t) => Math.abs(t.amount));
+  const max = Math.max(...amounts);
+  const min = Math.min(...amounts);
+  if (max > KNOWN_SUB_MAX_CHARGE) return false;
+  // With two charges, they should be about the same amount to look like a sub.
+  if (items.length === 2 && (min <= 0 || max / min > 1.2)) return false;
+  return true;
+}
+
 /** Normalize a merchant/description so the same payee groups together. */
 function normalizeMerchant(m: string): string {
   return (m || '')
@@ -339,10 +357,12 @@ export function detectSubscriptions(txs: Transaction[]): Subscription[] {
   for (const [key, items] of byMerchant) {
     const cadence = detectCadence(items);
     if (cadence) {
+      // A real repeating pattern (3+ regular charges) — high confidence.
       subs.push(buildSubscription(`auto_${key}`, items, cadence));
-    } else if (isKnownRecurring(key)) {
-      // Recognized subscription brand — count it from the first charge, assuming
-      // a monthly cadence (the most common) until enough history proves otherwise.
+    } else if (isKnownRecurring(key) && looksLikeKnownSubscription(items)) {
+      // Recognized brand with too little history yet to prove a pattern: treat
+      // as a monthly subscription, but guard against one-time purchases from the
+      // same brand (e.g. a pricey one-off, or inconsistent charges).
       subs.push(buildSubscription(`auto_${key}`, items, 'monthly'));
     }
   }
