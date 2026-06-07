@@ -67,6 +67,9 @@ Copy `.env.example` → `.env` and fill in:
 - **Categories** — Stripe sends a description, not a category, so we infer one
   from keywords in `src/lib/stripe/categorize.ts` (edit to taste).
 - **De-dup** — keyed on `(user_id, external_id = Stripe transaction id)`.
+- **History window** — on link we backfill the last **12 months** of
+  transactions (`HISTORY_MONTHS` in `src/lib/stripe/sync.ts`). Stripe only returns
+  what each bank shares, so the real depth can be shorter.
 
 ## Security notes
 

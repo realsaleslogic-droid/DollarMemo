@@ -7,13 +7,29 @@ export interface SyncResult {
   added: number;
 }
 
+// How much transaction history to import when an account is linked. 12 months
+// fills the Year view + trend charts and gives recurring detection enough data,
+// without an oversized first sync. (Stripe only returns what each bank shares,
+// so the real depth can be less.)
+const HISTORY_MONTHS = 12;
+
+function historyCutoff(): number {
+  const d = new Date();
+  d.setMonth(d.getMonth() - HISTORY_MONTHS);
+  return Math.floor(d.getTime() / 1000);
+}
+
+/** Best-effort transaction timestamp (unix seconds). */
+function txnTimestamp(t: Stripe.FinancialConnections.Transaction): number {
+  return t.transacted_at ?? t.status_transitions?.posted_at ?? Math.floor(Date.now() / 1000);
+}
+
 // Stripe Financial Connections amounts are signed the same way DollarMemo
 // stores them: a positive value is money entering the account (a credit /
 // income), a negative value is money leaving (a debit / expense). So we divide
 // by 100 and keep the sign; the type follows from it.
 function toRow(userId: string, accountId: string, t: Stripe.FinancialConnections.Transaction) {
-  const ts =
-    t.transacted_at ?? t.status_transitions?.posted_at ?? Math.floor(Date.now() / 1000);
+  const ts = txnTimestamp(t);
   const amount = t.amount / 100;
   const isIncome = t.amount >= 0;
   return {
@@ -45,13 +61,15 @@ export async function syncStripeForUser(
     .neq('status', 'disconnected');
   if (error) throw new Error(error.message);
 
+  const cutoff = historyCutoff();
   let added = 0;
   for (const acct of accounts ?? []) {
     const accountId = acct.account_id as string;
     try {
       const rows: ReturnType<typeof toRow>[] = [];
       let startingAfter: string | undefined;
-      // Page through this account's transactions.
+      // Page through this account's transactions, keeping only the last
+      // HISTORY_MONTHS of history.
       // eslint-disable-next-line no-constant-condition
       while (true) {
         const page = await stripe.financialConnections.transactions.list({
@@ -61,6 +79,7 @@ export async function syncStripeForUser(
         });
         for (const t of page.data) {
           if (t.status === 'void') continue;
+          if (txnTimestamp(t) < cutoff) continue;
           rows.push(toRow(userId, accountId, t));
         }
         if (!page.has_more || page.data.length === 0) break;
