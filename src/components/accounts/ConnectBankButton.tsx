@@ -62,7 +62,7 @@ export default function ConnectBankButton({
         )}
       >
         {busy ? <Loader2 size={17} className="animate-spin" /> : <Landmark size={17} />}
-        {busy ? 'Connecting…' : 'Connect a bank or card'}
+        {busy ? 'Connecting…' : 'Connect bank'}
       </button>
       {error && <p className="max-w-xs text-xs text-expense">{error}</p>}
     </div>

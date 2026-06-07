@@ -9,9 +9,11 @@ import Segmented from '@/components/Segmented';
 import TransactionRow from '@/components/TransactionRow';
 import CategoryPie from '@/components/charts/CategoryPie';
 import TrendChart from '@/components/charts/TrendChart';
+import ConnectBankButton from '@/components/accounts/ConnectBankButton';
 import { StatGridSkeleton, ListSkeleton } from '@/components/Skeletons';
 import { useReady } from '@/lib/useReady';
 import { useFinanceStore } from '@/store/useFinanceStore';
+import { useSessionStore } from '@/store/useSessionStore';
 import { useUIStore } from '@/store/useUIStore';
 import {
   periodRange,
@@ -40,6 +42,7 @@ const GRAN_OPTS: { value: Granularity; label: string }[] = [
 export default function DashboardPage() {
   const { transactions, ready } = useReady();
   const { period, setPeriod, granularity, setGranularity } = useFinanceStore();
+  const mode = useSessionStore((s) => s.mode);
   const openEdit = useUIStore((s) => s.openEdit);
   const openAdd = useUIStore((s) => s.openAdd);
   const removeTransaction = useFinanceStore((s) => s.removeTransaction);
@@ -64,10 +67,11 @@ export default function DashboardPage() {
     <>
       <Topbar title="Dashboard" subtitle="Your money at a glance" />
 
-      {/* Period switcher */}
-      <div className="mb-5 mt-1 flex items-center justify-between">
+      {/* Period switcher + quick connect */}
+      <div className="mb-5 mt-1 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold lg:hidden">Overview</h2>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          {mode === 'db' && <ConnectBankButton className="px-3.5 py-2 text-xs" />}
           <Segmented options={PERIOD_OPTS} value={period} onChange={setPeriod} />
         </div>
       </div>
