@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { User, Palette, Coins, Check, Loader2, Sun, Moon, ShieldCheck, FileText, ChevronRight } from 'lucide-react';
+import { User, Palette, Coins, Check, Loader2, Sun, Moon, ShieldCheck, FileText, Scale, ChevronRight } from 'lucide-react';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useSessionStore } from '@/store/useSessionStore';
 import { ACCENTS, CURRENCIES, type AccentId } from '@/lib/settings';
@@ -208,17 +208,30 @@ export default function SettingsClient({
 
       {/* Privacy & legal */}
       <Section icon={ShieldCheck} title="Privacy & legal" desc="How DollarMemo handles your data.">
-        <Link
-          href="/privacy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm font-semibold transition hover:bg-surface-2"
-        >
-          <span className="flex items-center gap-2.5">
-            <FileText size={17} className="text-ink-soft" /> Privacy Policy
-          </span>
-          <ChevronRight size={16} className="text-ink-soft" />
-        </Link>
+        <div className="space-y-2">
+          <Link
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm font-semibold transition hover:bg-surface-2"
+          >
+            <span className="flex items-center gap-2.5">
+              <FileText size={17} className="text-ink-soft" /> Privacy Policy
+            </span>
+            <ChevronRight size={16} className="text-ink-soft" />
+          </Link>
+          <Link
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm font-semibold transition hover:bg-surface-2"
+          >
+            <span className="flex items-center gap-2.5">
+              <Scale size={17} className="text-ink-soft" /> Terms of Service
+            </span>
+            <ChevronRight size={16} className="text-ink-soft" />
+          </Link>
+        </div>
       </Section>
     </div>
   );
