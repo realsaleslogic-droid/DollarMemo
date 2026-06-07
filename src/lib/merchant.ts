@@ -58,7 +58,7 @@ const BRAND_DISPLAY: { tokens: string[]; name: string }[] = [
 ];
 
 // Filler tokens that add no meaning in a statement descriptor.
-const NOISE = /\b(pos|purchase|payment|pmt|debit|credit|ach|recurring|autopay|web|online|bill|billpay|transaction|trans|ref|invoice|inv|auth|des|tot|intl|transfer)\b/gi;
+const NOISE = /\b(pos|purchase|payment|pmt|debit|credit|ach|recurring|autopay|web|online|bill|billpay|transaction|trans|ref|invoice|inv|auth|des|tot|intl|transfer|from|to)\b/gi;
 
 function stripNoise(s: string): string {
   return s
@@ -109,8 +109,42 @@ function brandFromString(s: string): string | null {
   return null;
 }
 
+// Masked account number -> last 4 digits, e.g. "Xxxxxx1942" / "****1942".
+const MASKED = /[x*•]{2,}\s*(\d{2,5})/i;
+// Common bank account labels (with an optional brand-ish adjective in front).
+const ACCOUNT_TYPE =
+  /\b((?:prime|everyday|online|premier|advantage|essential|basic|gold|platinum|student|business|personal|joint)\s+)?(checking|savings|money market|credit card|brokerage|debit card)\b/i;
+
+/**
+ * Format account-to-account transfers (e.g. "From Brodskiy V Prime Checking
+ * Xxxxxx1942 Ib0wbl5sms On 01/02/26" -> "Transfer from Prime Checking ••1942").
+ * Returns null if it doesn't look like a transfer.
+ */
+function transferName(raw: string): string | null {
+  if (!/\b(transfer|withdrawal|deposit|from|to)\b/i.test(raw)) return null;
+
+  const masked = raw.match(MASKED);
+  const typeMatch = raw.match(ACCOUNT_TYPE);
+  const isTransfer = /\btransfer\b/i.test(raw);
+
+  // Need a strong transfer signal: an explicit "transfer", or a masked account
+  // alongside an account type. Otherwise let the normal path handle it.
+  if (!isTransfer && !(masked && typeMatch)) return null;
+
+  const dir = /\bfrom\b/i.test(raw) ? 'from' : /\bto\b/i.test(raw) ? 'to' : null;
+  const account = typeMatch ? titleCase(`${(typeMatch[1] ?? '').trim()} ${typeMatch[2]}`.trim()) : 'account';
+  const last4 = masked ? masked[1].slice(-4) : null;
+  const suffix = last4 ? ` ••${last4}` : '';
+
+  return dir ? `Transfer ${dir} ${account}${suffix}` : `Transfer · ${account}${suffix}`;
+}
+
 export function prettyMerchant(raw: string): string {
   if (!raw || !raw.trim()) return 'Transaction';
+
+  // Account-to-account transfers get a dedicated, readable format.
+  const transfer = transferName(raw);
+  if (transfer) return transfer;
 
   // Which payment processor (if any) is fronting the charge?
   const proc = PROCESSORS.find((p) => p.re.test(raw)) ?? null;
