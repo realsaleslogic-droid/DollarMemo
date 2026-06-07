@@ -206,52 +206,121 @@ export interface Subscription {
   occurrences: number;
 }
 
+/** Build a Subscription summary from a group of same-merchant charges. */
+function buildSubscription(recurringId: string, items: Transaction[], frequency: string): Subscription {
+  const sorted = [...items].sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  const latest = sorted[0];
+  const charge = Math.abs(latest.amount);
+
+  // Normalize the charge to monthly/annual figures based on how often it repeats.
+  const annualCost = frequency === 'weekly' ? charge * 52 : frequency === 'yearly' ? charge : charge * 12;
+  const monthlyCost = annualCost / 12;
+
+  // Project the next billing date one interval after the latest charge.
+  const next = new Date(latest.date);
+  if (frequency === 'weekly') next.setDate(next.getDate() + 7);
+  else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
+  else next.setMonth(next.getMonth() + 1);
+
+  return {
+    recurringId,
+    name: latest.merchant,
+    category: latest.category,
+    monthlyCost,
+    annualCost,
+    frequency,
+    lastCharge: latest.date,
+    nextBilling: next.toISOString(),
+    occurrences: items.length,
+  };
+}
+
+/** Normalize a merchant/description so the same payee groups together. */
+function normalizeMerchant(m: string): string {
+  return (m || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .replace(/\b(com|inc|llc|co|ltd|pos|purchase|payment|recurring|autopay|bill|debit|ach)\b/g, ' ')
+    .replace(/\d+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function median(nums: number[]): number {
+  const s = [...nums].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
 /**
- * Identify recurring subscription-style payments from the data. We group
- * recurring expenses by `recurringId`, take the most recent charge amount, and
- * project the next billing date one month out.
+ * Infer a billing cadence from a payee's charges. Returns a frequency only when
+ * the charges repeat at a regular interval with consistent amounts — so true
+ * subscriptions/bills are caught while ad-hoc spending (groceries, gas) isn't.
+ */
+function detectCadence(items: Transaction[]): string | null {
+  if (items.length < 3) return null;
+
+  // Amounts must be reasonably consistent (subscriptions are exact; bills vary a little).
+  const amounts = items.map((t) => Math.abs(t.amount));
+  const mean = amounts.reduce((a, b) => a + b, 0) / amounts.length;
+  if (mean <= 0) return null;
+  const variance = amounts.reduce((a, b) => a + (b - mean) ** 2, 0) / amounts.length;
+  const cv = Math.sqrt(variance) / mean;
+  if (cv > 0.35) return null;
+
+  // Gaps between consecutive charges, in days.
+  const dates = items.map((t) => +new Date(t.date)).sort((a, b) => a - b);
+  const gaps: number[] = [];
+  for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / 86_400_000);
+  if (!gaps.length) return null;
+
+  const med = median(gaps);
+  // Most gaps should sit near the median (regular cadence, not random repeats).
+  const tolerance = Math.max(4, med * 0.4);
+  const regular = gaps.filter((g) => Math.abs(g - med) <= tolerance).length / gaps.length;
+  if (regular < 0.6) return null;
+
+  if (med >= 5 && med <= 10) return 'weekly';
+  if (med >= 24 && med <= 38) return 'monthly';
+  if (med >= 330 && med <= 400) return 'yearly';
+  return null;
+}
+
+/**
+ * Identify recurring subscription-style payments. Uses transactions explicitly
+ * flagged recurring (manual entries, demo data) AND auto-detects recurring
+ * payees from imported/bank data by spotting repeated, regularly-spaced charges.
  */
 export function detectSubscriptions(txs: Transaction[]): Subscription[] {
-  const groups = new Map<string, Transaction[]>();
+  const subs: Subscription[] = [];
+
+  // 1) Explicitly-flagged recurring expenses, grouped by recurringId.
+  const flagged = new Map<string, Transaction[]>();
   for (const t of txs) {
     if (t.type !== 'expense' || !t.isRecurring || !t.recurringId) continue;
-    // Treat rent/utilities as bills too, but the Recurring page focuses on
-    // subscription-like services; include all recurring expenses and let the
-    // UI group them.
-    const arr = groups.get(t.recurringId) ?? [];
+    const arr = flagged.get(t.recurringId) ?? [];
     arr.push(t);
-    groups.set(t.recurringId, arr);
+    flagged.set(t.recurringId, arr);
+  }
+  for (const [recurringId, items] of flagged) {
+    subs.push(buildSubscription(recurringId, items, items[0].frequency ?? 'monthly'));
   }
 
-  const subs: Subscription[] = [];
-  for (const [recurringId, items] of groups) {
-    const sorted = items.sort((a, b) => +new Date(b.date) - +new Date(a.date));
-    const latest = sorted[0];
-    const charge = Math.abs(latest.amount);
-    const frequency = latest.frequency ?? 'monthly';
-
-    // Normalize the charge to monthly/annual figures based on how often it repeats.
-    const annualCost = frequency === 'weekly' ? charge * 52 : frequency === 'yearly' ? charge : charge * 12;
-    const monthlyCost = annualCost / 12;
-
-    // Project the next billing date one interval after the latest charge.
-    const next = new Date(latest.date);
-    if (frequency === 'weekly') next.setDate(next.getDate() + 7);
-    else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
-    else next.setMonth(next.getMonth() + 1);
-
-    subs.push({
-      recurringId,
-      name: latest.merchant,
-      category: latest.category,
-      monthlyCost,
-      annualCost,
-      frequency,
-      lastCharge: latest.date,
-      nextBilling: next.toISOString(),
-      occurrences: items.length,
-    });
+  // 2) Auto-detect recurring payees among the remaining (unflagged) expenses.
+  const byMerchant = new Map<string, Transaction[]>();
+  for (const t of txs) {
+    if (t.type !== 'expense' || (t.isRecurring && t.recurringId)) continue;
+    const key = normalizeMerchant(t.merchant);
+    if (!key) continue;
+    const arr = byMerchant.get(key) ?? [];
+    arr.push(t);
+    byMerchant.set(key, arr);
   }
+  for (const [key, items] of byMerchant) {
+    const frequency = detectCadence(items);
+    if (frequency) subs.push(buildSubscription(`auto_${key}`, items, frequency));
+  }
+
   return subs.sort((a, b) => b.monthlyCost - a.monthlyCost);
 }
 
