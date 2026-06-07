@@ -235,6 +235,26 @@ function buildSubscription(recurringId: string, items: Transaction[], frequency:
   };
 }
 
+// Recognizable subscription services. A charge from one of these is treated as
+// recurring from the very first occurrence (no need to wait for 3 charges),
+// since we know what it is. Tokens are matched against the space-stripped,
+// normalized merchant name.
+const KNOWN_RECURRING = [
+  'netflix', 'spotify', 'hulu', 'disney', 'hbomax', 'youtubepremium', 'youtubetv',
+  'primevideo', 'amazonprime', 'applemusic', 'appletv', 'icloud', 'adobe', 'chatgpt',
+  'openai', 'dropbox', 'notion', 'patreon', 'nytimes', 'peacock', 'paramount',
+  'audible', 'xboxgamepass', 'playstationplus', 'nintendoswitchonline', 'canva',
+  'grammarly', 'linkedinpremium', 'githubcopilot', 'googleone', 'onedrive',
+  'microsoft365', 'office365', 'uberone', 'doordashdashpass', 'instacart',
+  'planetfitness', 'equinox', 'peloton', 'crunchyroll', 'twitch', 'expressvpn',
+  'nordvpn', 'masterclass', 'duolingo', 'calm', 'headspace', 'medium',
+];
+
+function isKnownRecurring(normalizedKey: string): boolean {
+  const k = normalizedKey.replace(/\s+/g, '');
+  return KNOWN_RECURRING.some((t) => k.includes(t));
+}
+
 /** Normalize a merchant/description so the same payee groups together. */
 function normalizeMerchant(m: string): string {
   return (m || '')
@@ -317,8 +337,14 @@ export function detectSubscriptions(txs: Transaction[]): Subscription[] {
     byMerchant.set(key, arr);
   }
   for (const [key, items] of byMerchant) {
-    const frequency = detectCadence(items);
-    if (frequency) subs.push(buildSubscription(`auto_${key}`, items, frequency));
+    const cadence = detectCadence(items);
+    if (cadence) {
+      subs.push(buildSubscription(`auto_${key}`, items, cadence));
+    } else if (isKnownRecurring(key)) {
+      // Recognized subscription brand — count it from the first charge, assuming
+      // a monthly cadence (the most common) until enough history proves otherwise.
+      subs.push(buildSubscription(`auto_${key}`, items, 'monthly'));
+    }
   }
 
   return subs.sort((a, b) => b.monthlyCost - a.monthlyCost);
