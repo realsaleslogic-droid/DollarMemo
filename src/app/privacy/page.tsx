@@ -6,7 +6,7 @@ import BrandLogo from '@/components/BrandLogo';
 export const metadata: Metadata = { title: 'Privacy Policy · DollarMemo' };
 
 const UPDATED = 'June 5, 2026';
-const CONTACT = 'privacy@dollarmemo.app'; // update to your real contact email
+const CONTACT = 'dollarmemoapp@gmail.com';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -57,8 +57,8 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-ink">Connected accounts (optional).</strong> If you link a bank or card, our
-                provider Plaid collects your account transactions and balances on our behalf. Your bank login
-                credentials are entered with Plaid and are never seen by or stored on DollarMemo.
+                provider Stripe collects your account transactions and balances on our behalf. Your bank login
+                credentials are entered with Stripe and are never seen by or stored on DollarMemo.
               </li>
               <li>
                 <strong className="text-ink">Preferences.</strong> Settings such as your chosen accent color and display
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
                 transactions).
               </li>
               <li>
-                <strong className="text-ink">Plaid</strong> — secure connection to your financial institutions (only if
+                <strong className="text-ink">Stripe</strong> — secure connection to your financial institutions (only if
                 you choose to link an account).
               </li>
               <li>
