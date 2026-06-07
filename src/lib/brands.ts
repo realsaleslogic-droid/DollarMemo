@@ -71,7 +71,10 @@ function normalize(name: string): string {
 
 /** Resolve a merchant name to a known brand, or null if it isn't recognizable. */
 export function brandFor(merchant: string): Brand | null {
-  const m = normalize(merchant);
+  // Drop a "(via PayPal)" style processor suffix so the logo reflects the real
+  // merchant (e.g. "Apple (via PayPal)" -> Apple's logo, not PayPal's).
+  const primary = merchant.replace(/\s*\(via[^)]*\)\s*/gi, ' ');
+  const m = normalize(primary);
   if (!m) return null;
   for (const key of KEYS) {
     if (m === key) return BRANDS[key];
