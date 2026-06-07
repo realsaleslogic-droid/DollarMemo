@@ -22,13 +22,3 @@ export function categorizeStripe(description: string): CategoryId {
   }
   return 'Other';
 }
-
-/** Tidy a raw bank description into a friendlier merchant label. */
-export function cleanMerchant(description: string): string {
-  const cleaned = (description || '')
-    .replace(/\s+/g, ' ')
-    .replace(/\b(pos|purchase|debit|payment|recurring|ach|pmt|id:?\s*\w+|#\d+)\b/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-  return cleaned || 'Transaction';
-}

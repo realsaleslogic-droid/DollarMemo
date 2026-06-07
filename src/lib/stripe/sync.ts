@@ -1,7 +1,8 @@
 import 'server-only';
 import type Stripe from 'stripe';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { categorizeStripe, cleanMerchant } from './categorize';
+import { categorizeStripe } from './categorize';
+import { prettyMerchant } from '@/lib/merchant';
 
 export interface SyncResult {
   added: number;
@@ -38,7 +39,7 @@ function toRow(userId: string, accountId: string, t: Stripe.FinancialConnections
     account_id: accountId,
     source: 'stripe',
     date: new Date(ts * 1000).toISOString(),
-    merchant: cleanMerchant(t.description),
+    merchant: prettyMerchant(t.description),
     category: isIncome ? 'Income' : categorizeStripe(t.description),
     amount,
     type: isIncome ? 'income' : 'expense',
