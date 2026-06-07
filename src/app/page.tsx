@@ -51,14 +51,16 @@ export default function Landing() {
                 <PlayCircle size={18} /> Try the demo
               </DemoButton>
             </div>
-            <p className="mt-4 text-sm text-ink-soft">
-              Already have an account?{' '}
-              <Link href="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-300">
-                Log in
-              </Link>
-              <span className="mx-2 text-ink-soft/50">·</span>
-              No sign-up needed to explore the demo
-            </p>
+            <div className="mt-4 flex flex-col gap-1 text-sm text-ink-soft sm:flex-row sm:items-center sm:gap-2">
+              <span>
+                Already have an account?{' '}
+                <Link href="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-300">
+                  Log in
+                </Link>
+              </span>
+              <span className="hidden text-ink-soft/50 sm:inline">·</span>
+              <span>No sign-up needed to explore the demo</span>
+            </div>
           </div>
 
           {/* Hero mascot */}
