@@ -1,7 +1,5 @@
 'use client';
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import type { Transaction } from './types';
 import {
   summarize,
@@ -46,7 +44,14 @@ export function exportCSV(txs: Transaction[], filename = 'dollarmemo-transaction
 }
 
 /** Generate a polished PDF financial statement from the given transactions. */
-export function exportPDF(txs: Transaction[], filename = 'dollarmemo-statement.pdf') {
+export async function exportPDF(txs: Transaction[], filename = 'dollarmemo-statement.pdf') {
+  // Load the (large) PDF libraries only when a PDF is actually exported, so they
+  // don't bloat the Reports/Transactions page bundles.
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
+
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const brand = '#14a085';
