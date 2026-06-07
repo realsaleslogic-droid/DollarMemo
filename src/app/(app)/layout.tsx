@@ -24,10 +24,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   let transactions: Transaction[] = [];
   if (user) {
+    // Bound the read: select only the columns we use and cap how many rows a
+    // single user can load, so no account (however large) can balloon the
+    // payload, DB egress, or client-side analytics work. The (user_id, date)
+    // index keeps this fast at scale.
     const { data } = await supabase
       .from('transactions')
-      .select('*')
-      .order('date', { ascending: false });
+      .select('id,date,merchant,category,amount,type,description,is_recurring,recurring_id,frequency')
+      .order('date', { ascending: false })
+      .limit(5000);
     transactions = ((data ?? []) as Row[]).map(rowToTransaction);
   }
 
