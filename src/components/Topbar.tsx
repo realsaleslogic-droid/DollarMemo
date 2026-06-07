@@ -57,7 +57,15 @@ function AccountMenu() {
   );
 }
 
-export default function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
+export default function Topbar({
+  title,
+  subtitle,
+  primaryAction,
+}: {
+  title: string;
+  subtitle?: string;
+  primaryAction?: React.ReactNode;
+}) {
   const openAdd = useUIStore((s) => s.openAdd);
   const mode = useSessionStore((s) => s.mode);
 
@@ -82,11 +90,13 @@ export default function Topbar({ title, subtitle }: { title: string; subtitle?: 
           </Link>
         )}
         <ThemeToggle />
-        <button onClick={openAdd} className="btn-primary">
-          <Plus size={18} />
-          <span className="hidden sm:inline">Add Transaction</span>
-          <span className="sm:hidden">Add</span>
-        </button>
+        {primaryAction ?? (
+          <button onClick={openAdd} className="btn-primary">
+            <Plus size={18} />
+            <span className="hidden sm:inline">Add Transaction</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+        )}
         {mode === 'db' ? (
           <AccountMenu />
         ) : (

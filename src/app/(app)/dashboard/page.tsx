@@ -9,7 +9,7 @@ import Segmented from '@/components/Segmented';
 import TransactionRow from '@/components/TransactionRow';
 import CategoryPie from '@/components/charts/CategoryPie';
 import TrendChart from '@/components/charts/TrendChart';
-import ConnectBankButton from '@/components/accounts/ConnectBankButton';
+import BankControl from '@/components/accounts/BankControl';
 import { StatGridSkeleton, ListSkeleton } from '@/components/Skeletons';
 import { useReady } from '@/lib/useReady';
 import { useFinanceStore } from '@/store/useFinanceStore';
@@ -65,13 +65,21 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Topbar title="Dashboard" subtitle="Your money at a glance" />
+      <Topbar
+        title="Dashboard"
+        subtitle="Your money at a glance"
+        primaryAction={mode === 'db' ? <BankControl /> : undefined}
+      />
 
-      {/* Period switcher + quick connect */}
+      {/* Period switcher + add transaction */}
       <div className="mb-5 mt-1 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold lg:hidden">Overview</h2>
         <div className="ml-auto flex items-center gap-2">
-          {mode === 'db' && <ConnectBankButton className="px-3.5 py-2 text-xs" />}
+          {mode === 'db' && (
+            <button onClick={openAdd} className="btn-primary px-3.5 py-2 text-xs">
+              <Plus size={15} /> Add Transaction
+            </button>
+          )}
           <Segmented options={PERIOD_OPTS} value={period} onChange={setPeriod} />
         </div>
       </div>
