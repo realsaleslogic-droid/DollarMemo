@@ -2,7 +2,8 @@
 
 import { create } from 'zustand';
 import type { Transaction, TransactionInput, Period, Granularity } from '@/lib/types';
-import { createTransaction, updateTransaction, deleteTransaction } from '@/app/actions';
+import { createTransaction, updateTransaction, deleteTransaction, fetchTransactionsBefore } from '@/app/actions';
+import { INITIAL_TRANSACTION_LOAD, TRANSACTION_PAGE_SIZE } from '@/lib/pagination';
 
 export type DataMode = 'db' | 'demo';
 
@@ -56,11 +57,14 @@ interface FinanceState {
   mode: DataMode;
   period: Period;
   granularity: Granularity;
+  hasMore: boolean;
+  loadingMore: boolean;
 
   setPeriod: (p: Period) => void;
   setGranularity: (g: Granularity) => void;
 
   hydrate: (txs: Transaction[], mode: DataMode) => void;
+  loadMore: () => Promise<void>;
 
   addTransaction: (input: TransactionInput) => Promise<void>;
   editTransaction: (id: string, input: TransactionInput) => Promise<void>;
@@ -73,11 +77,32 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   mode: 'demo',
   period: 'month',
   granularity: 'monthly',
+  hasMore: false,
+  loadingMore: false,
 
   setPeriod: (period) => set({ period }),
   setGranularity: (granularity) => set({ granularity }),
 
-  hydrate: (txs, mode) => set({ transactions: txs, mode, hydrated: true }),
+  // Only signed-in (db) users page in older rows; demo holds everything locally.
+  hydrate: (txs, mode) =>
+    set({ transactions: txs, mode, hydrated: true, hasMore: mode === 'db' && txs.length >= INITIAL_TRANSACTION_LOAD }),
+
+  loadMore: async () => {
+    const { mode, transactions, hasMore, loadingMore } = get();
+    if (mode !== 'db' || !hasMore || loadingMore || transactions.length === 0) return;
+    set({ loadingMore: true });
+    try {
+      const oldest = transactions[transactions.length - 1].date;
+      const older = await fetchTransactionsBefore(oldest, TRANSACTION_PAGE_SIZE);
+      set((s) => ({
+        transactions: [...s.transactions, ...older],
+        hasMore: older.length >= TRANSACTION_PAGE_SIZE,
+        loadingMore: false,
+      }));
+    } catch {
+      set({ loadingMore: false });
+    }
+  },
 
   addTransaction: async (input) => {
     if (get().mode === 'demo') {

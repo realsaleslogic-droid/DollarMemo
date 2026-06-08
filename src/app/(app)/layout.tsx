@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { rowToTransaction, type Row } from '@/lib/transactionRow';
+import { TRANSACTION_COLUMNS, INITIAL_TRANSACTION_LOAD } from '@/lib/pagination';
 import type { Transaction } from '@/lib/types';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
@@ -24,15 +25,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   let transactions: Transaction[] = [];
   if (user) {
-    // Bound the read: select only the columns we use and cap how many rows a
-    // single user can load, so no account (however large) can balloon the
-    // payload, DB egress, or client-side analytics work. The (user_id, date)
-    // index keeps this fast at scale.
+    // Load only the most-recent window up front (older rows page in on demand via
+    // the Transactions "Load more"). Analytics pages aggregate server-side over
+    // full history, so this small payload doesn't reduce their accuracy.
     const { data } = await supabase
       .from('transactions')
-      .select('id,date,merchant,category,amount,type,description,is_recurring,recurring_id,frequency')
+      .select(TRANSACTION_COLUMNS)
       .order('date', { ascending: false })
-      .limit(5000);
+      .limit(INITIAL_TRANSACTION_LOAD);
     transactions = ((data ?? []) as Row[]).map(rowToTransaction);
   }
 

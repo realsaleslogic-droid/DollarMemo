@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Search, Download, SlidersHorizontal, Inbox } from 'lucide-react';
+import { Search, Download, SlidersHorizontal, Inbox, Loader2 } from 'lucide-react';
 import Topbar from '@/components/Topbar';
 import TransactionRow from '@/components/TransactionRow';
 import { ListSkeleton } from '@/components/Skeletons';
@@ -11,8 +11,10 @@ import { useUIStore } from '@/store/useUIStore';
 import { CATEGORIES } from '@/lib/categories';
 import { summarize } from '@/lib/analytics';
 import { exportCSV } from '@/lib/export';
+import { fetchAllTransactions } from '@/app/actions';
 import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import type { Transaction } from '@/lib/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -20,32 +22,53 @@ export default function TransactionsPage() {
   const { transactions, ready } = useReady();
   const openEdit = useUIStore((s) => s.openEdit);
   const removeTransaction = useFinanceStore((s) => s.removeTransaction);
+  const mode = useFinanceStore((s) => s.mode);
+  const hasMore = useFinanceStore((s) => s.hasMore);
+  const loadingMore = useFinanceStore((s) => s.loadingMore);
+  const loadMore = useFinanceStore((s) => s.loadMore);
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [type, setType] = useState<'all' | 'income' | 'expense'>('all');
   const [month, setMonth] = useState('all');
   const [year, setYear] = useState('all');
+  const [exporting, setExporting] = useState(false);
 
   const years = useMemo(
     () => [...new Set(transactions.map((t) => new Date(t.date).getFullYear()))].sort((a, b) => b - a),
     [transactions]
   );
 
-  const filtered = useMemo(() => {
+  const matches = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return transactions
-      .filter((t) => {
-        if (q && !t.merchant.toLowerCase().includes(q) && !(t.description ?? '').toLowerCase().includes(q)) return false;
-        if (category !== 'all' && t.category !== category) return false;
-        if (type !== 'all' && t.type !== type) return false;
-        const d = new Date(t.date);
-        if (month !== 'all' && d.getMonth() !== Number(month)) return false;
-        if (year !== 'all' && d.getFullYear() !== Number(year)) return false;
-        return true;
-      })
-      .sort((a, b) => +new Date(b.date) - +new Date(a.date));
-  }, [transactions, search, category, type, month, year]);
+    return (t: Transaction) => {
+      if (q && !t.merchant.toLowerCase().includes(q) && !(t.description ?? '').toLowerCase().includes(q)) return false;
+      if (category !== 'all' && t.category !== category) return false;
+      if (type !== 'all' && t.type !== type) return false;
+      const d = new Date(t.date);
+      if (month !== 'all' && d.getMonth() !== Number(month)) return false;
+      if (year !== 'all' && d.getFullYear() !== Number(year)) return false;
+      return true;
+    };
+  }, [search, category, type, month, year]);
+
+  const byDateDesc = (a: Transaction, b: Transaction) => +new Date(b.date) - +new Date(a.date);
+  const filtered = useMemo(
+    () => transactions.filter(matches).sort(byDateDesc),
+    [transactions, matches]
+  );
+
+  // Export the COMPLETE history (fetched on demand for signed-in users), not just
+  // the rows currently loaded into the list.
+  async function handleExportCSV() {
+    setExporting(true);
+    try {
+      const base = mode === 'db' ? await fetchAllTransactions() : transactions;
+      exportCSV(base.filter(matches).sort(byDateDesc));
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const sum = useMemo(() => summarize(filtered), [filtered]);
 
@@ -138,8 +161,8 @@ export default function TransactionsPage() {
             <button onClick={resetFilters} className="btn-ghost py-1.5 text-xs">
               <SlidersHorizontal size={14} /> Reset filters
             </button>
-            <button onClick={() => exportCSV(filtered)} className="btn-soft py-1.5 text-xs">
-              <Download size={14} /> Export CSV ({filtered.length})
+            <button onClick={handleExportCSV} disabled={exporting} className="btn-soft py-1.5 text-xs">
+              {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} Export CSV
             </button>
           </div>
         </div>
@@ -166,6 +189,15 @@ export default function TransactionsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {ready && mode === 'db' && hasMore && (
+          <div className="mt-4 flex justify-center">
+            <button onClick={loadMore} disabled={loadingMore} className="btn-ghost py-2 text-xs">
+              {loadingMore ? <Loader2 size={14} className="animate-spin" /> : null}
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </button>
           </div>
         )}
       </div>

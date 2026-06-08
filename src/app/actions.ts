@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { rowToTransaction, type Row } from '@/lib/transactionRow';
+import { TRANSACTION_COLUMNS, TRANSACTION_PAGE_SIZE } from '@/lib/pagination';
 import type { Transaction, TransactionInput } from '@/lib/types';
 
 function normalizeAmount(input: TransactionInput): number {
@@ -17,6 +18,34 @@ async function requireUser() {
   } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
   return { supabase, user };
+}
+
+/** Older transactions for the "Load more" feed (cursor = oldest loaded date). */
+export async function fetchTransactionsBefore(
+  beforeISO: string,
+  limit = TRANSACTION_PAGE_SIZE
+): Promise<Transaction[]> {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(TRANSACTION_COLUMNS)
+    .lt('date', beforeISO)
+    .order('date', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Row[]).map(rowToTransaction);
+}
+
+/** Full history — used only on demand (e.g. CSV/PDF export). */
+export async function fetchAllTransactions(): Promise<Transaction[]> {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(TRANSACTION_COLUMNS)
+    .order('date', { ascending: false })
+    .limit(100000);
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Row[]).map(rowToTransaction);
 }
 
 export async function createTransaction(input: TransactionInput): Promise<Transaction> {
