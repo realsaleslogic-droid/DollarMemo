@@ -17,10 +17,16 @@ function whenLabel(date: Date): string {
 
 export default function UpcomingCharges({ subs }: { subs: Subscription[] }) {
   const upcoming = upcomingCharges(subs, new Date(), 120, 5);
+  const title =
+    upcoming.length === 0
+      ? 'Upcoming charges'
+      : upcoming.length === 1
+        ? 'Next charge'
+        : `Next ${upcoming.length} charges`;
 
   return (
     <div className="card p-5">
-      <h3 className="font-bold">Next 5 charges</h3>
+      <h3 className="font-bold">{title}</h3>
       <p className="mb-3 text-xs text-ink-soft">Your upcoming recurring payments</p>
 
       {upcoming.length === 0 ? (
