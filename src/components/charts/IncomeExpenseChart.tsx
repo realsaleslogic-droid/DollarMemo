@@ -45,6 +45,8 @@ export default function IncomeExpenseChart({ data }: { data: TrendPoint[] }) {
             background: 'rgb(var(--surface))',
             color: 'rgb(var(--ink))',
           }}
+          itemStyle={{ color: 'rgb(var(--ink))' }}
+          labelStyle={{ color: 'rgb(var(--ink))' }}
         />
         <Legend
           iconType="circle"

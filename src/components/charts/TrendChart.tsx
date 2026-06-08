@@ -49,6 +49,8 @@ export default function TrendChart({ data }: { data: TrendPoint[] }) {
             background: 'rgb(var(--surface))',
             color: 'rgb(var(--ink))',
           }}
+          itemStyle={{ color: 'rgb(var(--ink))' }}
+          labelStyle={{ color: 'rgb(var(--ink))' }}
         />
         <Bar dataKey="expenses" radius={[8, 8, 4, 4]} maxBarSize={42}>
           {data.map((d, i) => (

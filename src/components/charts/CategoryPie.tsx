@@ -37,6 +37,8 @@ export default function CategoryPie({ data }: { data: CategorySlice[] }) {
               background: 'rgb(var(--surface))',
               color: 'rgb(var(--ink))',
             }}
+            itemStyle={{ color: 'rgb(var(--ink))' }}
+            labelStyle={{ color: 'rgb(var(--ink))' }}
           />
         </PieChart>
       </ResponsiveContainer>
