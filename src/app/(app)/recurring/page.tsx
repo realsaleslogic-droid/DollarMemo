@@ -1,25 +1,47 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarClock, Repeat, Wallet, Layers } from 'lucide-react';
 import Topbar from '@/components/Topbar';
 import MerchantAvatar from '@/components/MerchantAvatar';
 import { useReady } from '@/lib/useReady';
+import { useSessionStore } from '@/store/useSessionStore';
 import { detectSubscriptions, type Subscription } from '@/lib/analytics';
+import { getRecurringData } from '@/app/overview-actions';
 import { formatMoney, formatDate } from '@/lib/format';
 import { categoryLabel } from '@/lib/categories';
 
 export default function RecurringPage() {
   const { transactions, ready } = useReady();
+  const mode = useSessionStore((s) => s.mode);
+
+  // Detected over full history server-side for signed-in users; demo / any error
+  // falls back to the identical client detection below.
+  const [server, setServer] = useState<Subscription[] | null>(null);
+  useEffect(() => {
+    if (mode !== 'db') {
+      setServer(null);
+      return;
+    }
+    let cancelled = false;
+    getRecurringData()
+      .then((d) => {
+        if (!cancelled) setServer(d);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, transactions.length]);
 
   const { subs, services, bills, monthlyTotal, yearlyTotal } = useMemo(() => {
-    const all = detectSubscriptions(transactions);
+    const all = server ?? detectSubscriptions(transactions);
     const services = all.filter((s) => s.category === 'Subscriptions');
     const bills = all.filter((s) => s.category !== 'Subscriptions');
     const monthlyTotal = all.reduce((s, x) => s + x.monthlyCost, 0);
     return { subs: all, services, bills, monthlyTotal, yearlyTotal: all.reduce((s, x) => s + x.annualCost, 0) };
-  }, [transactions]);
+  }, [transactions, server]);
 
   const stats = [
     { icon: Wallet, label: 'Total monthly', value: formatMoney(monthlyTotal) },

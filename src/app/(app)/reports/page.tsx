@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Download, FileText, Crown, Receipt, CalendarDays, Repeat, TrendingUp, TrendingDown } from 'lucide-react';
 import Topbar from '@/components/Topbar';
 import IncomeExpenseChart from '@/components/charts/IncomeExpenseChart';
 import TrendChart from '@/components/charts/TrendChart';
 import { useReady } from '@/lib/useReady';
+import { useSessionStore } from '@/store/useSessionStore';
+import { getReportsInsights, type ReportsInsights } from '@/app/overview-actions';
 import {
   monthlyIncomeVsExpenses,
   spendingByCategory,
@@ -26,12 +28,33 @@ import { categoryLabel } from '@/lib/categories';
 
 export default function ReportsPage() {
   const { transactions, ready } = useReady();
+  const mode = useSessionStore((s) => s.mode);
+
+  // Heavy all-history insights computed server-side for signed-in users; demo /
+  // any error falls back to the identical client computation below.
+  const [server, setServer] = useState<ReportsInsights | null>(null);
+  useEffect(() => {
+    if (mode !== 'db') {
+      setServer(null);
+      return;
+    }
+    let cancelled = false;
+    getReportsInsights()
+      .then((d) => {
+        if (!cancelled) setServer(d);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, transactions.length]);
 
   const r = useMemo(() => {
-    const byCat = spendingByCategory(transactions);
-    const subs = subscriptionServices(transactions);
-    const subMonthly = subs.reduce((s, x) => s + x.monthlyCost, 0);
-    const largest = largestTransaction(transactions);
+    const byCat = server?.byCategory ?? spendingByCategory(transactions);
+    const services = subscriptionServices(transactions);
+    const subMonthly = server?.subMonthly ?? services.reduce((s, x) => s + x.monthlyCost, 0);
+    const subCount = server?.subCount ?? (services.length ? services : detectSubscriptions(transactions)).length;
+    const largest = server?.largest ?? largestTransaction(transactions);
     const curMonth = summarize(filterByRange(transactions, periodRange('month')));
     const prevMonth = summarize(filterByRange(transactions, previousRange('month')));
     return {
@@ -42,11 +65,11 @@ export default function ReportsPage() {
       largest,
       avgDaily: averageDailySpending(transactions),
       subMonthly,
-      subCount: (subs.length ? subs : detectSubscriptions(transactions)).length,
+      subCount,
       incomeDelta: pctChange(curMonth.income, prevMonth.income),
       spendDelta: pctChange(curMonth.expenses, prevMonth.expenses),
     };
-  }, [transactions]);
+  }, [transactions, server]);
 
   const insights = ready
     ? [
