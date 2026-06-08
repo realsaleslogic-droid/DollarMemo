@@ -127,42 +127,44 @@ export interface TrendPoint {
   income: number;
 }
 
+export interface TrendBucket {
+  label: string;
+  start: Date;
+  end: Date;
+}
+
+/** The time buckets for a trend granularity over its trailing window. */
+export function trendBuckets(granularity: Granularity, ref = new Date()): TrendBucket[] {
+  if (granularity === 'daily') {
+    return eachDayOfInterval({ start: subDays(ref, 13), end: ref }).map((b) => ({
+      label: format(b, 'MMM d'),
+      start: startOfDay(b),
+      end: endOfDay(b),
+    }));
+  }
+  if (granularity === 'weekly') {
+    return eachWeekOfInterval({ start: subDays(ref, 7 * 9), end: ref }, { weekStartsOn: 1 }).map((b) => ({
+      label: format(b, 'MMM d'),
+      start: startOfWeek(b, { weekStartsOn: 1 }),
+      end: endOfWeek(b, { weekStartsOn: 1 }),
+    }));
+  }
+  return eachMonthOfInterval({ start: subMonths(ref, 11), end: ref }).map((b) => ({
+    label: format(b, 'MMM'),
+    start: startOfMonth(b),
+    end: endOfMonth(b),
+  }));
+}
+
 /** Spending/income trend bucketed by granularity over a trailing window. */
 export function spendingTrend(
   txs: Transaction[],
   granularity: Granularity,
   ref = new Date()
 ): TrendPoint[] {
-  let buckets: Date[];
-  let labelFmt: string;
-  let bucketStart: (d: Date) => Date;
-  let bucketEnd: (d: Date) => Date;
-
-  if (granularity === 'daily') {
-    buckets = eachDayOfInterval({ start: subDays(ref, 13), end: ref });
-    labelFmt = 'MMM d';
-    bucketStart = startOfDay;
-    bucketEnd = endOfDay;
-  } else if (granularity === 'weekly') {
-    buckets = eachWeekOfInterval({ start: subDays(ref, 7 * 9), end: ref }, { weekStartsOn: 1 });
-    labelFmt = 'MMM d';
-    bucketStart = (d) => startOfWeek(d, { weekStartsOn: 1 });
-    bucketEnd = (d) => endOfWeek(d, { weekStartsOn: 1 });
-  } else {
-    buckets = eachMonthOfInterval({ start: subMonths(ref, 11), end: ref });
-    labelFmt = 'MMM';
-    bucketStart = startOfMonth;
-    bucketEnd = endOfMonth;
-  }
-
-  return buckets.map((b) => {
-    const range = { start: bucketStart(b), end: bucketEnd(b) };
-    const slice = filterByRange(txs, range);
-    return {
-      label: format(b, labelFmt),
-      expenses: totalExpenses(slice),
-      income: totalIncome(slice),
-    };
+  return trendBuckets(granularity, ref).map((b) => {
+    const slice = filterByRange(txs, { start: b.start, end: b.end });
+    return { label: b.label, expenses: totalExpenses(slice), income: totalIncome(slice) };
   });
 }
 
@@ -190,6 +192,90 @@ export function largestTransaction(txs: Transaction[]): Transaction | null {
   const expenses = txs.filter((t) => t.type === 'expense');
   if (!expenses.length) return null;
   return expenses.reduce((max, t) => (Math.abs(t.amount) > Math.abs(max.amount) ? t : max));
+}
+
+// ---------------------- dashboard overview (server-safe) -------------------
+//
+// Aggregation split into two halves so the heavy work can run on the server
+// while staying timezone-correct: the CLIENT computes the date windows (so
+// "today"/"this week" match the user's timezone), then either side runs the
+// pure `aggregateOverview` over those absolute windows. Identical inputs ->
+// identical numbers, whether computed in the browser or on the server.
+
+export interface RangeISO {
+  start: string;
+  end: string;
+}
+
+export interface OverviewRanges {
+  periods: Record<Period, { cur: RangeISO; prev: RangeISO }>;
+  trend: Record<Granularity, { label: string; start: string; end: string }[]>;
+}
+
+const PERIODS: Period[] = ['today', 'week', 'month', 'year'];
+const GRANS: Granularity[] = ['daily', 'weekly', 'monthly'];
+
+/** Build the absolute date windows the dashboard needs (run on the client). */
+export function buildOverviewRanges(ref = new Date()): OverviewRanges {
+  const iso = (r: DateRange): RangeISO => ({ start: r.start.toISOString(), end: r.end.toISOString() });
+  const periods = {} as OverviewRanges['periods'];
+  for (const p of PERIODS) periods[p] = { cur: iso(periodRange(p, ref)), prev: iso(previousRange(p, ref)) };
+  const trend = {} as OverviewRanges['trend'];
+  for (const g of GRANS) {
+    trend[g] = trendBuckets(g, ref).map((b) => ({
+      label: b.label,
+      start: b.start.toISOString(),
+      end: b.end.toISOString(),
+    }));
+  }
+  return { periods, trend };
+}
+
+export interface PeriodData extends Summary {
+  deltaIncome: number;
+  deltaExpenses: number;
+  deltaNet: number;
+  byCategory: CategorySlice[];
+}
+
+export interface DashboardData {
+  periods: Record<Period, PeriodData>;
+  trend: Record<Granularity, TrendPoint[]>;
+  recent: Transaction[];
+}
+
+function sliceAbs(txs: Transaction[], r: { start: string; end: string }): Transaction[] {
+  const s = +new Date(r.start);
+  const e = +new Date(r.end);
+  return txs.filter((t) => {
+    const d = +new Date(t.date);
+    return d >= s && d <= e;
+  });
+}
+
+/** Compute the full dashboard payload from transactions + precomputed windows. */
+export function aggregateOverview(txs: Transaction[], ranges: OverviewRanges): DashboardData {
+  const periods = {} as Record<Period, PeriodData>;
+  for (const p of PERIODS) {
+    const curTx = sliceAbs(txs, ranges.periods[p].cur);
+    const cur = summarize(curTx);
+    const prev = summarize(sliceAbs(txs, ranges.periods[p].prev));
+    periods[p] = {
+      ...cur,
+      deltaIncome: pctChange(cur.income, prev.income),
+      deltaExpenses: pctChange(cur.expenses, prev.expenses),
+      deltaNet: pctChange(cur.net, prev.net),
+      byCategory: spendingByCategory(curTx),
+    };
+  }
+  const trend = {} as Record<Granularity, TrendPoint[]>;
+  for (const g of GRANS) {
+    trend[g] = ranges.trend[g].map((b) => {
+      const slice = sliceAbs(txs, b);
+      return { label: b.label, expenses: totalExpenses(slice), income: totalIncome(slice) };
+    });
+  }
+  return { periods, trend, recent: recentTransactions(txs, 5) };
 }
 
 // --------------------------- recurring detection ---------------------------

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Wallet, ArrowRight, Plus } from 'lucide-react';
 import Topbar from '@/components/Topbar';
@@ -15,16 +15,8 @@ import { useReady } from '@/lib/useReady';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSessionStore } from '@/store/useSessionStore';
 import { useUIStore } from '@/store/useUIStore';
-import {
-  periodRange,
-  previousRange,
-  filterByRange,
-  summarize,
-  spendingByCategory,
-  spendingTrend,
-  recentTransactions,
-  pctChange,
-} from '@/lib/analytics';
+import { buildOverviewRanges, aggregateOverview, type DashboardData } from '@/lib/analytics';
+import { getDashboardData } from '@/app/overview-actions';
 import type { Period, Granularity } from '@/lib/types';
 
 const PERIOD_OPTS: { value: Period; label: string }[] = [
@@ -47,21 +39,48 @@ export default function DashboardPage() {
   const openAdd = useUIStore((s) => s.openAdd);
   const removeTransaction = useFinanceStore((s) => s.removeTransaction);
 
-  const data = useMemo(() => {
-    const range = filterByRange(transactions, periodRange(period));
-    const prev = filterByRange(transactions, previousRange(period));
-    const cur = summarize(range);
-    const prevSum = summarize(prev);
-    return {
-      cur,
-      deltaIncome: pctChange(cur.income, prevSum.income),
-      deltaExpenses: pctChange(cur.expenses, prevSum.expenses),
-      deltaNet: pctChange(cur.net, prevSum.net),
-      byCategory: spendingByCategory(range),
-      trend: spendingTrend(transactions, granularity),
-      recent: recentTransactions(transactions, 5),
+  // Timezone-correct date windows, computed on the client.
+  const ranges = useMemo(() => buildOverviewRanges(), []);
+
+  // Signed-in users get the overview computed server-side over their full
+  // history; demo (and any server hiccup) falls back to computing locally —
+  // identical numbers either way. Refetch when the data changes (e.g. an edit).
+  const [serverData, setServerData] = useState<DashboardData | null>(null);
+  useEffect(() => {
+    if (mode !== 'db') {
+      setServerData(null);
+      return;
+    }
+    let cancelled = false;
+    getDashboardData(ranges)
+      .then((d) => {
+        if (!cancelled) setServerData(d);
+      })
+      .catch(() => {
+        /* keep the local fallback */
+      });
+    return () => {
+      cancelled = true;
     };
-  }, [transactions, period, granularity]);
+  }, [mode, ranges, transactions.length]);
+
+  const overview = useMemo(
+    () => serverData ?? aggregateOverview(transactions, ranges),
+    [serverData, transactions, ranges]
+  );
+
+  const data = useMemo(() => {
+    const p = overview.periods[period];
+    return {
+      cur: p,
+      deltaIncome: p.deltaIncome,
+      deltaExpenses: p.deltaExpenses,
+      deltaNet: p.deltaNet,
+      byCategory: p.byCategory,
+      trend: overview.trend[granularity],
+      recent: overview.recent,
+    };
+  }, [overview, period, granularity]);
 
   return (
     <>
