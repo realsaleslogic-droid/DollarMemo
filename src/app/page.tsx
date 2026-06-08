@@ -37,9 +37,9 @@ export default function Landing() {
               Spend smarter.<br />
               <span className="bg-brand-gradient bg-clip-text text-transparent">Save more.</span>
             </h1>
-            <p className="mt-5 max-w-md text-lg text-ink-soft">
-              Track income & expenses, analyze your habits, tame subscriptions, and generate
-              statements — all in one beautiful dashboard.
+            <p className="mt-5 max-w-lg text-lg text-ink-soft">
+              Connect your bank or card to track income &amp; expenses, analyze your habits, tame
+              subscriptions, and generate statements — all in one beautiful dashboard.
             </p>
 
             {/* Primary actions */}
