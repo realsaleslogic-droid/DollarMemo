@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { CalendarClock, Repeat, Wallet, Layers } from 'lucide-react';
 import Topbar from '@/components/Topbar';
 import MerchantAvatar from '@/components/MerchantAvatar';
+import RecurringCalendar from '@/components/recurring/RecurringCalendar';
+import UpcomingCharges from '@/components/recurring/UpcomingCharges';
 import { useReady } from '@/lib/useReady';
 import { useSessionStore } from '@/store/useSessionStore';
 import { detectSubscriptions, type Subscription } from '@/lib/analytics';
@@ -80,6 +82,14 @@ export default function RecurringPage() {
           )
         )}
       </div>
+
+      {/* Calendar + upcoming charges */}
+      {ready && subs.length > 0 && (
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <RecurringCalendar subs={subs} className="lg:col-span-2" />
+          <UpcomingCharges subs={subs} />
+        </div>
+      )}
 
       {/* Subscriptions */}
       <h2 className="mb-3 mt-6 text-lg font-bold">Subscriptions</h2>
