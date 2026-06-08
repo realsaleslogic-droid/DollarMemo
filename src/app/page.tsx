@@ -6,7 +6,7 @@ import DemoButton from '@/components/DemoButton';
 
 const FEATURES = [
   { icon: BarChart3, title: 'Live analytics', desc: 'Spending by category, trends and net cash flow update in real time.' },
-  { icon: Landmark, title: 'Connect your bank', desc: 'Securely link a bank or card and sync your transactions in automatically — tracked and categorized for you.' },
+  { icon: Landmark, title: 'Connect your bank', desc: 'Securely link a bank and sync your transactions in automatically — tracked and categorized for you.' },
   { icon: FileDown, title: 'Statements', desc: 'Export polished CSV & PDF financial statements in one click.' },
   { icon: ShieldCheck, title: 'Private & secure', desc: 'Your data is tied to your account — yours alone.' },
 ];
