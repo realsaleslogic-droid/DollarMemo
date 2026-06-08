@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, ShieldCheck, Repeat, FileDown, PlayCircle } from 'lucide-react';
+import { ArrowRight, BarChart3, ShieldCheck, Landmark, FileDown, PlayCircle } from 'lucide-react';
 import HeroCharacter from '@/components/HeroCharacter';
 import BrandLogo from '@/components/BrandLogo';
 import DemoButton from '@/components/DemoButton';
 
 const FEATURES = [
   { icon: BarChart3, title: 'Live analytics', desc: 'Spending by category, trends and net cash flow update in real time.' },
-  { icon: Repeat, title: 'Subscription radar', desc: 'Auto-detects recurring payments and projects your annual cost.' },
+  { icon: Landmark, title: 'Connect your bank', desc: 'Securely link a bank or card and sync your transactions in automatically — tracked and categorized for you.' },
   { icon: FileDown, title: 'Statements', desc: 'Export polished CSV & PDF financial statements in one click.' },
   { icon: ShieldCheck, title: 'Private & secure', desc: 'Your data is tied to your account — yours alone.' },
 ];
@@ -37,9 +37,9 @@ export default function Landing() {
               Spend smarter.<br />
               <span className="bg-brand-gradient bg-clip-text text-transparent">Save more.</span>
             </h1>
-            <p className="mt-5 max-w-lg text-lg text-ink-soft">
-              Connect your bank or card to track income &amp; expenses, analyze your habits, tame
-              subscriptions, and generate statements — all in one beautiful dashboard.
+            <p className="mt-5 max-w-md text-lg text-ink-soft">
+              Track income & expenses, analyze your habits, tame subscriptions, and generate
+              statements — all in one beautiful dashboard.
             </p>
 
             {/* Primary actions */}
