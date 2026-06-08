@@ -40,7 +40,7 @@ export default function UpcomingCharges({ subs }: { subs: Subscription[] }) {
                 <p className="truncate text-sm font-semibold">{c.sub.name}</p>
                 <p className="text-xs text-ink-soft">{whenLabel(c.date)}</p>
               </div>
-              <p className="text-sm font-bold tabular-nums text-expense">-{formatMoney(c.amount)}</p>
+              <p className="text-sm font-bold tabular-nums text-ink">{formatMoney(c.amount)}</p>
             </motion.li>
           ))}
         </ul>
