@@ -1,25 +1,32 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Landmark, RefreshCw, Trash2, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Landmark, RefreshCw, Trash2, ShieldCheck, AlertTriangle, CheckCircle2, Sparkles } from 'lucide-react';
 import ConnectBankButton from './ConnectBankButton';
 import { listConnections, syncTransactions, removeConnection, type Connection } from '@/app/stripe-actions';
+import type { PlanInfo } from '@/app/billing-actions';
 import { formatDate } from '@/lib/format';
 
 export default function AccountsClient({
   configured,
   initialConnections,
+  plan,
 }: {
   configured: boolean;
   initialConnections: Connection[];
+  plan: PlanInfo | null;
 }) {
   const router = useRouter();
   const [connections, setConnections] = useState<Connection[]>(initialConnections);
   const [syncing, setSyncing] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const limit = plan?.limit ?? 1;
+  const atLimit = !!plan && connections.length >= plan.limit;
 
   async function refresh() {
     try {
@@ -88,8 +95,21 @@ export default function AccountsClient({
           <div>
             <h3 className="font-bold">Connect your accounts</h3>
             <p className="text-sm text-ink-soft">
-              Securely link a bank or credit card with Stripe. Transactions sync in automatically and get categorized.
+              Securely link a bank or card with Stripe. Transactions sync in automatically and get categorized.
             </p>
+            {plan && (
+              <p className="mt-1 text-xs font-medium text-ink-soft">
+                {connections.length} of {limit} accounts used
+                {plan.plan === 'free' && (
+                  <>
+                    {' · '}
+                    <Link href="/upgrade" className="font-semibold text-brand-600 hover:underline dark:text-brand-300">
+                      Upgrade to Pro →
+                    </Link>
+                  </>
+                )}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -103,7 +123,16 @@ export default function AccountsClient({
               {syncing ? 'Syncing…' : 'Sync now'}
             </button>
           )}
-          <ConnectBankButton onLinked={refresh} />
+          {atLimit ? (
+            <Link
+              href="/upgrade"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5 text-sm font-bold text-white shadow-glow transition hover:brightness-110"
+            >
+              <Sparkles size={17} /> Upgrade to connect more
+            </Link>
+          ) : (
+            <ConnectBankButton onLinked={refresh} />
+          )}
         </div>
       </div>
 

@@ -1,11 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import type Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { stripeClient } from '@/lib/stripe/client';
 import { assertStripeConfigured } from '@/lib/stripe/config';
+import { getOrCreateCustomer } from '@/lib/stripe/customer';
+import { getUserPlan, accountLimit, ACCOUNT_LIMITS } from '@/lib/stripe/plan';
 import { syncStripeForUser, type SyncResult } from '@/lib/stripe/sync';
 
 export interface Connection {
@@ -34,36 +35,13 @@ function revalidateAll() {
   revalidatePath('/accounts');
 }
 
-/** Get (or lazily create) the Stripe customer that owns this user's links. */
-async function getOrCreateCustomer(
-  admin: ReturnType<typeof createAdminClient>,
-  stripe: Stripe,
-  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }
-): Promise<string> {
-  const { data } = await admin
-    .from('stripe_customers')
-    .select('customer_id')
-    .eq('user_id', user.id)
-    .single();
-  if (data?.customer_id) return data.customer_id as string;
-
-  const customer = await stripe.customers.create({
-    email: user.email ?? undefined,
-    name: (user.user_metadata?.name as string | undefined) ?? undefined,
-    metadata: { supabase_user_id: user.id },
-  });
-  await admin.from('stripe_customers').insert({ user_id: user.id, customer_id: customer.id });
-  return customer.id;
-}
-
 /** Create a Financial Connections session; returns its client secret for Stripe.js. */
 export async function createFcSession(): Promise<{ clientSecret: string }> {
   assertStripeConfigured();
   const user = await requireUser();
   const stripe = stripeClient();
-  const admin = createAdminClient();
 
-  const customer = await getOrCreateCustomer(admin, stripe, user);
+  const customer = await getOrCreateCustomer(user);
   const session = await stripe.financialConnections.sessions.create({
     account_holder: { type: 'customer', customer },
     permissions: ['transactions', 'balances'],
@@ -79,6 +57,22 @@ export async function linkAccounts(accountIds: string[]): Promise<SyncResult> {
   const user = await requireUser();
   const stripe = stripeClient();
   const admin = createAdminClient();
+
+  // Enforce the plan's connected-account limit.
+  const plan = await getUserPlan(admin, user.id);
+  const limit = accountLimit(plan);
+  const { count } = await admin
+    .from('stripe_accounts')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+  const existing = count ?? 0;
+  if (existing + accountIds.length > limit) {
+    throw new Error(
+      plan === 'free'
+        ? `Your free plan includes ${limit} bank account. Upgrade to Pro to connect up to ${ACCOUNT_LIMITS.pro}.`
+        : `Your plan allows up to ${limit} connected accounts.`
+    );
+  }
 
   for (const id of accountIds) {
     const account = await stripe.financialConnections.accounts.retrieve(id);

@@ -5,6 +5,7 @@ import AccountsClient from '@/components/accounts/AccountsClient';
 import { createClient } from '@/lib/supabase/server';
 import { isStripeConfigured } from '@/lib/stripe/config';
 import { listConnections, type Connection } from '@/app/stripe-actions';
+import { getPlan, type PlanInfo } from '@/app/billing-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,18 +42,24 @@ export default async function AccountsPage() {
 
   const configured = isStripeConfigured();
   let connections: Connection[] = [];
+  let plan: PlanInfo | null = null;
   if (configured) {
     try {
       connections = await listConnections();
     } catch {
       connections = [];
     }
+    try {
+      plan = await getPlan();
+    } catch {
+      plan = null;
+    }
   }
 
   return (
     <>
       <Topbar title="Accounts" subtitle="Linked banks & cards" />
-      <AccountsClient configured={configured} initialConnections={connections} />
+      <AccountsClient configured={configured} initialConnections={connections} plan={plan} />
     </>
   );
 }

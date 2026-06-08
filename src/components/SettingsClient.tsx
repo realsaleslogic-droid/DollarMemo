@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { User, Palette, Coins, Check, Loader2, Sun, Moon, ShieldCheck, FileText, Scale, ChevronRight } from 'lucide-react';
+import { User, Palette, Coins, Check, Loader2, Sun, Moon, ShieldCheck, FileText, Scale, ChevronRight, Sparkles } from 'lucide-react';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useSessionStore } from '@/store/useSessionStore';
 import { ACCENTS, CURRENCIES, type AccentId } from '@/lib/settings';
@@ -42,10 +42,12 @@ export default function SettingsClient({
   signedIn,
   name: initialName,
   email,
+  isPro = false,
 }: {
   signedIn: boolean;
   name: string;
   email: string;
+  isPro?: boolean;
 }) {
   const accent = useSettingsStore((s) => s.accent);
   const setAccent = useSettingsStore((s) => s.setAccent);
@@ -205,6 +207,30 @@ export default function SettingsClient({
           </div>
         </div>
       </Section>
+
+      {/* Plan & billing */}
+      {signedIn && (
+        <Section icon={Sparkles} title="Plan & billing" desc="Manage your DollarMemo subscription.">
+          <Link
+            href="/upgrade"
+            className="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm font-semibold transition hover:bg-surface-2"
+          >
+            <span className="flex items-center gap-2.5">
+              <span
+                className={
+                  isPro
+                    ? 'rounded-full bg-brand-gradient px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white'
+                    : 'rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-soft'
+                }
+              >
+                {isPro ? 'Pro' : 'Free'}
+              </span>
+              {isPro ? 'Manage your plan' : 'Upgrade to Pro — connect more banks'}
+            </span>
+            <ChevronRight size={16} className="text-ink-soft" />
+          </Link>
+        </Section>
+      )}
 
       {/* Privacy & legal */}
       <Section icon={ShieldCheck} title="Privacy & legal" desc="How DollarMemo handles your data.">

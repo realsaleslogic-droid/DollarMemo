@@ -71,6 +71,27 @@ Copy `.env.example` → `.env` and fill in:
   transactions (`HISTORY_MONTHS` in `src/lib/stripe/sync.ts`). Stripe only returns
   what each bank shares, so the real depth can be shorter.
 
+## Paid plans (Stripe Billing)
+
+Free users can connect **1** bank; **Pro** users can connect up to **5**. Pricing
+lives in code — edit `PRICES` / `ACCOUNT_LIMITS` in `src/lib/stripe/plan.ts`
+(defaults: $7.99/mo, $59.99/yr). No Stripe Price IDs are needed (Checkout uses
+inline `price_data`).
+
+To enable Pro:
+
+1. Run **`supabase/sql/billing.sql`** once (adds subscription columns to
+   `stripe_customers`).
+2. **Webhook:** Stripe Dashboard → Developers → Webhooks → add an endpoint at
+   `https://<your-app>/api/stripe/webhook` for events
+   `checkout.session.completed` and `customer.subscription.created/updated/deleted`.
+   Put its signing secret in **`STRIPE_WEBHOOK_SECRET`**.
+3. **Customer portal:** Dashboard → Settings → Billing → Customer portal → enable
+   it (so users can manage/cancel from the app).
+4. Users upgrade at **/upgrade** (linked from Settings and the Accounts page when
+   they hit the free limit). The flow: Checkout → webhook updates their plan →
+   the account limit lifts.
+
 ## Security notes
 
 - Bank credentials are entered in Stripe's modal and **never touch DollarMemo**.
