@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
 const PRO_FEATURES = [
-  'Connect up to 5 banks & cards',
+  'Connect up to 5 banks',
   'Automatic transaction sync',
   'Auto-categorization & merchant logos',
   'Recurring payment calendar',
@@ -88,7 +88,7 @@ export default function UpgradeClient({
         </span>
         <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Connect more of your money</h2>
         <p className="max-w-md text-ink-soft">
-          Free includes one bank. Upgrade to Pro to securely connect and sync up to {proLimit} banks &amp; cards.
+          Free includes one bank. Upgrade to Pro to securely connect and sync up to {proLimit} banks.
         </p>
 
         {!isPro && (
