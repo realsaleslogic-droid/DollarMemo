@@ -55,7 +55,7 @@ export default function BankControl() {
   if (connections === null) return <div className="skeleton h-9 w-36 rounded-xl" />;
 
   if (connections.length === 0) {
-    return <ConnectBankButton onLinked={refetch} className="px-3.5 py-2 text-xs" />;
+    return <ConnectBankButton onLinked={refetch} />;
   }
 
   if (connections.length === 1) {
