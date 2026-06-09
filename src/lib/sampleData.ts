@@ -72,11 +72,11 @@ function tx(t: Omit<Transaction, 'id'>): Transaction {
   return { id: uid(), ...t };
 }
 
-/** Generate ~14 months of realistic, varied transactions. */
+/** Generate ~7 months of realistic, varied transactions (kept light so the demo loads fast). */
 export function generateSampleTransactions(): Transaction[] {
   const txs: Transaction[] = [];
   const now = new Date();
-  const MONTHS = 14;
+  const MONTHS = 7;
 
   for (let m = MONTHS - 1; m >= 0; m--) {
     const monthStart = new Date(now.getFullYear(), now.getMonth() - m, 1);
