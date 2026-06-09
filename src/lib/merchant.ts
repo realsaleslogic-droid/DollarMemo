@@ -139,6 +139,19 @@ function transferName(raw: string): string | null {
   return dir ? `Transfer ${dir} ${account}${suffix}` : `Transfer · ${account}${suffix}`;
 }
 
+/**
+ * Stable key for a (pretty) merchant name, used to remember its category. Drops
+ * a "(via PayPal)" processor suffix and any punctuation/spacing so "Apple",
+ * "apple", and "Apple (via PayPal)" all map to the same key.
+ */
+export function merchantKey(merchant: string): string {
+  return (merchant || '')
+    .replace(/\s*\(via[^)]*\)\s*/gi, ' ')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 80);
+}
+
 export function prettyMerchant(raw: string): string {
   if (!raw || !raw.trim()) return 'Transaction';
 

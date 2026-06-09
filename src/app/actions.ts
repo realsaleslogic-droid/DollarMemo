@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { rowToTransaction, type Row } from '@/lib/transactionRow';
 import { TRANSACTION_COLUMNS, TRANSACTION_PAGE_SIZE } from '@/lib/pagination';
+import { merchantKey } from '@/lib/merchant';
 import type { Transaction, TransactionInput } from '@/lib/types';
 
 function normalizeAmount(input: TransactionInput): number {
@@ -107,6 +108,19 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
     .select()
     .single();
   if (error) throw new Error(error.message);
+
+  // Learn from the correction: remember merchant -> category so future syncs
+  // categorize this merchant the same way (manual rules win over auto ones).
+  if (input.type === 'expense') {
+    const key = merchantKey(input.merchant.trim() || 'Unknown');
+    if (key) {
+      await supabase.from('merchant_categories').upsert(
+        { user_id: user.id, merchant_key: key, category: input.category, source: 'user', updated_at: new Date().toISOString() },
+        { onConflict: 'user_id,merchant_key' }
+      );
+    }
+  }
+
   revalidateAll();
   return rowToTransaction(data as Row);
 }

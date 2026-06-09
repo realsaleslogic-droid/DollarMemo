@@ -2,10 +2,27 @@ import 'server-only';
 import type Stripe from 'stripe';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { categorizeMerchant } from './categorize';
-import { prettyMerchant } from '@/lib/merchant';
+import { llmCategorize, isLlmCategorizationEnabled } from './llm-categorize';
+import { prettyMerchant, merchantKey } from '@/lib/merchant';
 
 export interface SyncResult {
   added: number;
+}
+
+type Rule = { category: string; source: string };
+
+/**
+ * Decide a transaction's category. Priority: a user's manual correction always
+ * wins; then the keyword map; then a cached automatic result; otherwise 'Other'
+ * (a candidate for the optional LLM pass).
+ */
+function decideCategory(merchant: string, isIncome: boolean, rules: Map<string, Rule>): string {
+  if (isIncome) return 'Income';
+  const rule = rules.get(merchantKey(merchant));
+  if (rule?.source === 'user') return rule.category;
+  const kw = categorizeMerchant(merchant);
+  if (kw !== 'Other') return kw;
+  return rule?.category ?? 'Other';
 }
 
 // How much transaction history to import when an account is linked. 12 months
@@ -29,7 +46,12 @@ function txnTimestamp(t: Stripe.FinancialConnections.Transaction): number {
 // stores them: a positive value is money entering the account (a credit /
 // income), a negative value is money leaving (a debit / expense). So we divide
 // by 100 and keep the sign; the type follows from it.
-function toRow(userId: string, accountId: string, t: Stripe.FinancialConnections.Transaction) {
+function toRow(
+  userId: string,
+  accountId: string,
+  t: Stripe.FinancialConnections.Transaction,
+  rules: Map<string, Rule>
+) {
   const ts = txnTimestamp(t);
   const amount = t.amount / 100;
   const isIncome = t.amount >= 0;
@@ -41,7 +63,7 @@ function toRow(userId: string, accountId: string, t: Stripe.FinancialConnections
     source: 'stripe',
     date: new Date(ts * 1000).toISOString(),
     merchant,
-    category: isIncome ? 'Income' : categorizeMerchant(merchant),
+    category: decideCategory(merchant, isIncome, rules),
     amount,
     type: isIncome ? 'income' : 'expense',
     description: null,
@@ -63,8 +85,19 @@ export async function syncStripeForUser(
     .neq('status', 'disconnected');
   if (error) throw new Error(error.message);
 
+  // The user's learned category rules (manual corrections + cached results).
+  const { data: ruleRows } = await admin
+    .from('merchant_categories')
+    .select('merchant_key, category, source')
+    .eq('user_id', userId);
+  const rules = new Map<string, Rule>(
+    (ruleRows ?? []).map((r) => [r.merchant_key as string, { category: r.category as string, source: r.source as string }])
+  );
+
   const cutoff = historyCutoff();
+  const unknown = new Map<string, string>(); // merchant name -> merchant key (expenses left as Other)
   let added = 0;
+
   for (const acct of accounts ?? []) {
     const accountId = acct.account_id as string;
     try {
@@ -82,7 +115,9 @@ export async function syncStripeForUser(
         for (const t of page.data) {
           if (t.status === 'void') continue;
           if (txnTimestamp(t) < cutoff) continue;
-          rows.push(toRow(userId, accountId, t));
+          const row = toRow(userId, accountId, t, rules);
+          rows.push(row);
+          if (row.type === 'expense' && row.category === 'Other') unknown.set(row.merchant, merchantKey(row.merchant));
         }
         if (!page.has_more || page.data.length === 0) break;
         startingAfter = page.data[page.data.length - 1].id;
@@ -106,6 +141,46 @@ export async function syncStripeForUser(
         .from('stripe_accounts')
         .update({ status: 'error', error: message, updated_at: new Date().toISOString() })
         .eq('id', acct.id);
+    }
+  }
+
+  // Optional: classify still-unknown merchants with the LLM, cache the result,
+  // and re-categorize those transactions. No-op when ANTHROPIC_API_KEY is unset.
+  if (unknown.size > 0 && isLlmCategorizationEnabled()) {
+    try {
+      const result = await llmCategorize([...unknown.keys()]);
+      if (result.size > 0) {
+        const now = new Date().toISOString();
+        const cacheRows = [...result].map(([merchant, category]) => ({
+          user_id: userId,
+          merchant_key: unknown.get(merchant)!,
+          category,
+          source: 'auto',
+          updated_at: now,
+        }));
+        // Don't overwrite a user's manual rule.
+        await admin
+          .from('merchant_categories')
+          .upsert(cacheRows, { onConflict: 'user_id,merchant_key', ignoreDuplicates: true });
+
+        // Apply, grouped by category, only to rows still marked Other.
+        const byCategory = new Map<string, string[]>();
+        for (const [merchant, category] of result) {
+          const arr = byCategory.get(category) ?? [];
+          arr.push(merchant);
+          byCategory.set(category, arr);
+        }
+        for (const [category, merchants] of byCategory) {
+          await admin
+            .from('transactions')
+            .update({ category })
+            .eq('user_id', userId)
+            .eq('category', 'Other')
+            .in('merchant', merchants);
+        }
+      }
+    } catch {
+      /* LLM categorization is best-effort */
     }
   }
 

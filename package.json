@@ -12,6 +12,7 @@
     "preview:build": "vite build --config preview/vite.config.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.103.0",
     "@react-three/drei": "^9.114.0",
     "@react-three/fiber": "^8.17.10",
     "@stripe/stripe-js": "^9.7.0",

@@ -64,8 +64,12 @@ Copy `.env.example` → `.env` and fill in:
 - **Amounts** — Stripe Financial Connections is signed the same way DollarMemo
   stores values: positive = money in (income), negative = money out (expense).
   We divide by 100 and keep the sign (`src/lib/stripe/sync.ts`).
-- **Categories** — Stripe sends a description, not a category, so we infer one
-  from keywords in `src/lib/stripe/categorize.ts` (edit to taste).
+- **Categories** — Stripe sends a description, not a category, so we infer one.
+  Priority: a user's manual correction (remembered per merchant in
+  `merchant_categories`, run `supabase/sql/categories.sql` once) → the keyword
+  map (`src/lib/stripe/categorize.ts`) → optional Claude categorization for
+  unknown merchants (set `ANTHROPIC_API_KEY`; results are cached so it's cheap)
+  → `Other`. Editing a transaction's category teaches the app for next time.
 - **De-dup** — keyed on `(user_id, external_id = Stripe transaction id)`.
 - **History window** — on link we backfill the last **12 months** of
   transactions (`HISTORY_MONTHS` in `src/lib/stripe/sync.ts`). Stripe only returns
