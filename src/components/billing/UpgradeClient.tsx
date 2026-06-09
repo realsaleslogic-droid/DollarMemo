@@ -13,14 +13,6 @@ import { cn } from '@/lib/utils';
 
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
-const PRO_FEATURES = [
-  'Connect up to 5 banks',
-  'Automatic transaction sync',
-  'Auto-categorization & merchant logos',
-  'Recurring payment calendar',
-  'CSV & PDF statements',
-];
-
 export default function UpgradeClient({
   plan,
   prices,
@@ -49,6 +41,7 @@ export default function UpgradeClient({
   }, [params, router]);
 
   const isPro = plan.plan === 'pro';
+  const proFeatures = ['Everything in the Free plan', `Connect up to ${proLimit} banks`];
   const annualPerMonth = prices.annual / 12;
   const savePct = Math.round((1 - prices.annual / (prices.monthly * 12)) * 100);
 
@@ -154,7 +147,7 @@ export default function UpgradeClient({
           )}
 
           <ul className="mt-4 space-y-2 text-sm">
-            {PRO_FEATURES.map((f) => (
+            {proFeatures.map((f) => (
               <li key={f} className="flex items-center gap-2">
                 <Check size={15} className="text-brand-600 dark:text-brand-300" /> {f}
               </li>
