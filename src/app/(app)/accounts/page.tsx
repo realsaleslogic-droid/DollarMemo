@@ -19,14 +19,14 @@ export default async function AccountsPage() {
   if (!user) {
     return (
       <>
-        <Topbar title="Accounts" subtitle="Linked banks & cards" />
+        <Topbar title="Accounts" subtitle="Linked banks" />
         <div className="card flex flex-col items-start gap-3 p-6">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow">
             <Sparkles size={20} />
           </span>
           <h3 className="text-lg font-bold">Create an account to link your bank</h3>
           <p className="max-w-md text-sm text-ink-soft">
-            You&apos;re in demo mode. Connecting a real bank or card requires a free DollarMemo account so your
+            You&apos;re in demo mode. Connecting a real bank requires a free DollarMemo account so your
             transactions can sync securely to your profile.
           </p>
           <Link
@@ -58,7 +58,7 @@ export default async function AccountsPage() {
 
   return (
     <>
-      <Topbar title="Accounts" subtitle="Linked banks & cards" />
+      <Topbar title="Accounts" subtitle="Linked banks" />
       <AccountsClient configured={configured} initialConnections={connections} plan={plan} />
     </>
   );

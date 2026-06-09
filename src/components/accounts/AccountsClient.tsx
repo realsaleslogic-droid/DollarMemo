@@ -95,7 +95,7 @@ export default function AccountsClient({
           <div>
             <h3 className="font-bold">Connect your accounts</h3>
             <p className="text-sm text-ink-soft">
-              Securely link a bank or card with Stripe. Transactions sync in automatically and get categorized.
+              Securely link a bank with Stripe. Transactions sync in automatically and get categorized.
             </p>
             {plan && (
               <p className="mt-1 text-xs font-medium text-ink-soft">
@@ -149,7 +149,7 @@ export default function AccountsClient({
           </span>
           <p className="font-semibold">No accounts linked yet</p>
           <p className="max-w-sm text-sm text-ink-soft">
-            Connect a bank or card to pull in real transactions and let DollarMemo track and categorize your spending.
+            Connect a bank to pull in real transactions and let DollarMemo track and categorize your spending.
           </p>
         </div>
       ) : (
