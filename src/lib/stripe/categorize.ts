@@ -1,10 +1,16 @@
 import type { CategoryId } from '@/lib/categories';
 
-// Stripe transactions don't include a category, so we infer one. We categorize
-// from the CLEANED merchant name (e.g. "Apple", "Transfer from Savings") rather
-// than the raw bank descriptor — raw descriptors are full of misleading noise
-// (e.g. PayPal's "SHOPPING LOGIC", or "STORE"/"POS") that wrongly forced almost
-// everything into Shopping. Rules are checked in order; the first match wins.
+// Stripe transactions don't include a category, so we infer one. We match against
+// brand/keyword tokens; rules are checked in order and the first match wins.
+//
+// Two-pass strategy (see categorizeTransaction): first try the CLEANED merchant
+// name (most precise), then fall back to scanning the RAW bank/processor
+// descriptor. The raw descriptor often names the real end-merchant behind a
+// payment processor — e.g. "PAYPAL *STEAM GAMES", "DOORDASH*CHIPOTLE",
+// "SQ *BLUE BOTTLE COFFEE", "TST* JOES PIZZA" — so analyzing it recovers a real
+// category for transactions the prettified name alone can't place. The tokens
+// below are specific brand/word signals (we deliberately avoid generic processor
+// noise like "shopping"/"store"/"pos", which is why the raw pass is safe).
 
 const RULES: { category: CategoryId; tokens: string[] }[] = [
   {
@@ -45,7 +51,7 @@ const RULES: { category: CategoryId; tokens: string[] }[] = [
       'uber', 'lyft', 'shell', 'chevron', 'exxon', 'mobil', 'arco', 'marathon', 'speedway',
       'bp ', 'citgo', 'valero', 'phillips 66', 'conoco', 'sunoco', 'sinclair', '76 ', 'wawa',
       'quiktrip', 'racetrac', 'circle k', 'gas station', 'fuel', 'parking', 'parkmobile', 'spothero',
-      'mta', 'bart', 'transit', 'toll', 'ezpass', 'e-zpass', 'fastrak', 'amtrak',
+      'mta transit', 'transit', 'toll', 'ezpass', 'e-zpass', 'fastrak', 'amtrak',
       'greyhound', 'airlines', 'air lines', 'delta air', 'united air', 'american air', 'southwest air',
       'jetblue', 'alaska air', 'spirit air', 'taxi', 'autozone', "o'reilly auto",
       'advance auto', 'napa auto', 'pep boys', 'car wash', 'jiffy lube', 'valvoline', 'midas',
@@ -122,4 +128,18 @@ export function categorizeMerchant(merchant: string): CategoryId {
     if (rule.tokens.some((t) => m.includes(t))) return rule.category;
   }
   return 'Other';
+}
+
+/**
+ * Smartly categorize a transaction by analyzing both the cleaned merchant name
+ * and the raw bank/processor descriptor. We try the cleaned name first (most
+ * precise), then fall back to the raw descriptor, which frequently names the
+ * real merchant behind a payment processor (PayPal, Square, DoorDash, Toast…).
+ * That lets us categorize what the money was actually spent on, not just how the
+ * charge is labeled. Unknown -> 'Other'.
+ */
+export function categorizeTransaction(rawDescription: string, cleanMerchant: string): CategoryId {
+  const fromClean = categorizeMerchant(cleanMerchant);
+  if (fromClean !== 'Other') return fromClean;
+  return categorizeMerchant(rawDescription);
 }

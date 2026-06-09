@@ -1,7 +1,7 @@
 import 'server-only';
 import type Stripe from 'stripe';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { categorizeMerchant } from './categorize';
+import { categorizeTransaction } from './categorize';
 import { llmCategorize, isLlmCategorizationEnabled } from './llm-categorize';
 import { prettyMerchant, merchantKey } from '@/lib/merchant';
 
@@ -13,14 +13,20 @@ type Rule = { category: string; source: string };
 
 /**
  * Decide a transaction's category. Priority: a user's manual correction always
- * wins; then the keyword map; then a cached automatic result; otherwise 'Other'
+ * wins; then the keyword map analyzing both the cleaned name and the raw bank/
+ * processor descriptor; then a cached automatic result; otherwise 'Other'
  * (a candidate for the optional LLM pass).
  */
-function decideCategory(merchant: string, isIncome: boolean, rules: Map<string, Rule>): string {
+function decideCategory(
+  rawDescription: string,
+  merchant: string,
+  isIncome: boolean,
+  rules: Map<string, Rule>
+): string {
   if (isIncome) return 'Income';
   const rule = rules.get(merchantKey(merchant));
   if (rule?.source === 'user') return rule.category;
-  const kw = categorizeMerchant(merchant);
+  const kw = categorizeTransaction(rawDescription, merchant);
   if (kw !== 'Other') return kw;
   return rule?.category ?? 'Other';
 }
@@ -55,7 +61,8 @@ function toRow(
   const ts = txnTimestamp(t);
   const amount = t.amount / 100;
   const isIncome = t.amount >= 0;
-  const merchant = prettyMerchant(t.description);
+  const raw = t.description ?? '';
+  const merchant = prettyMerchant(raw);
   return {
     user_id: userId,
     external_id: t.id,
@@ -63,7 +70,7 @@ function toRow(
     source: 'stripe',
     date: new Date(ts * 1000).toISOString(),
     merchant,
-    category: decideCategory(merchant, isIncome, rules),
+    category: decideCategory(raw, merchant, isIncome, rules),
     amount,
     type: isIncome ? 'income' : 'expense',
     description: null,
