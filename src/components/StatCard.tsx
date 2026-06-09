@@ -47,7 +47,7 @@ export default function StatCard({ label, value, icon: Icon, accent = 'brand', d
         )}
       </div>
       <p className="mt-4 text-sm font-medium text-ink-soft">{label}</p>
-      <p className="mt-1 text-3xl font-extrabold tracking-tight tabular-nums">{formatMoney(value)}</p>
+      <p className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums lg:text-3xl">{formatMoney(value)}</p>
     </motion.div>
   );
 }
