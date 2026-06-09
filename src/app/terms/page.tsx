@@ -79,7 +79,7 @@ export default function TermsPage() {
 
           <Section title="4. Connecting financial accounts">
             <p>
-              If you choose to link a bank or card, that connection is handled by our provider <strong className="text-ink">Stripe</strong>{' '}
+              If you choose to link a bank account, that connection is handled by our provider <strong className="text-ink">Stripe</strong>{' '}
               (Stripe Financial Connections). You authorize DollarMemo and Stripe to access and import your account and
               transaction information for the purpose of providing the Service. Your bank credentials are entered with
               Stripe and are never seen or stored by DollarMemo. Your use of that connection is also subject to

@@ -56,7 +56,7 @@ export default function PrivacyPage() {
                 and recurring-payment details you enter or import.
               </li>
               <li>
-                <strong className="text-ink">Connected accounts (optional).</strong> If you link a bank or card, our
+                <strong className="text-ink">Connected accounts (optional).</strong> If you link a bank account, our
                 provider Stripe collects your account transactions and balances on our behalf. Your bank login
                 credentials are entered with Stripe and are never seen by or stored on DollarMemo.
               </li>
