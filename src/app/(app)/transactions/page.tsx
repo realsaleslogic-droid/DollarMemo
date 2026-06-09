@@ -12,7 +12,7 @@ import { CATEGORIES } from '@/lib/categories';
 import { summarize } from '@/lib/analytics';
 import { exportCSV } from '@/lib/export';
 import { fetchAllTransactions } from '@/app/actions';
-import { formatMoney, formatCompact } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Transaction } from '@/lib/types';
 
@@ -96,28 +96,21 @@ export default function TransactionsPage() {
     <>
       <Topbar title="Transactions" subtitle="Search, filter & manage every transaction" />
 
-      {/* Summary chips — compact amounts on small phones (3-across) so big
-          numbers don't overflow; full amounts once there's room. */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card p-3 sm:p-4">
+      {/* Summary chips — 3-across even on phones, so use a smaller font + tighter
+          spacing on mobile to fit the full amount; scales up on wider screens. */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="card p-2.5 sm:p-4">
           <p className="text-xs font-medium text-ink-soft">Income</p>
-          <p className="mt-1 text-lg font-extrabold text-income tabular-nums sm:text-xl">
-            <span className="sm:hidden">{formatCompact(sum.income)}</span>
-            <span className="hidden sm:inline">{formatMoney(sum.income)}</span>
-          </p>
+          <p className="mt-1 text-sm font-extrabold text-income tabular-nums sm:text-lg lg:text-xl">{formatMoney(sum.income)}</p>
         </div>
-        <div className="card p-3 sm:p-4">
+        <div className="card p-2.5 sm:p-4">
           <p className="text-xs font-medium text-ink-soft">Spending</p>
-          <p className="mt-1 text-lg font-extrabold text-expense tabular-nums sm:text-xl">
-            <span className="sm:hidden">{formatCompact(sum.expenses)}</span>
-            <span className="hidden sm:inline">{formatMoney(sum.expenses)}</span>
-          </p>
+          <p className="mt-1 text-sm font-extrabold text-expense tabular-nums sm:text-lg lg:text-xl">{formatMoney(sum.expenses)}</p>
         </div>
-        <div className="card p-3 sm:p-4">
+        <div className="card p-2.5 sm:p-4">
           <p className="text-xs font-medium text-ink-soft">Net</p>
-          <p className={cn('mt-1 text-lg font-extrabold tabular-nums sm:text-xl', sum.net >= 0 ? 'text-income' : 'text-expense')}>
-            <span className="sm:hidden">{formatCompact(sum.net)}</span>
-            <span className="hidden sm:inline">{formatMoney(sum.net)}</span>
+          <p className={cn('mt-1 text-sm font-extrabold tabular-nums sm:text-lg lg:text-xl', sum.net >= 0 ? 'text-income' : 'text-expense')}>
+            {formatMoney(sum.net)}
           </p>
         </div>
       </div>
