@@ -2,11 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Wallet, ArrowRight, Plus } from 'lucide-react';
 import Topbar from '@/components/Topbar';
 import StatCard from '@/components/StatCard';
-import AuroraBackground from '@/components/dashboard/AuroraBackground';
 import Segmented from '@/components/Segmented';
 import TransactionRow from '@/components/TransactionRow';
 import CategoryPie from '@/components/charts/CategoryPie';
@@ -86,7 +84,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AuroraBackground />
       <Topbar
         title="Dashboard"
         subtitle="Your money at a glance"
@@ -118,12 +115,7 @@ export default function DashboardPage() {
       )}
 
       {/* Analytics */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.24, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-5"
-      >
+      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-5">
         {/* Category pie */}
         <div className="card p-5 lg:col-span-2">
           <h3 className="mb-1 font-bold">Spending by Category</h3>
@@ -153,15 +145,10 @@ export default function DashboardPage() {
           </div>
           {ready ? <TrendChart data={data.trend} /> : <div className="skeleton h-[280px]" />}
         </div>
-      </motion.div>
+      </div>
 
       {/* Recent activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.32, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="mt-5 card p-5"
-      >
+      <div className="mt-5 card p-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-bold">Recent Activity</h3>
           <div className="flex items-center gap-2">
@@ -182,7 +169,7 @@ export default function DashboardPage() {
         ) : (
           <ListSkeleton rows={5} />
         )}
-      </motion.div>
+      </div>
     </>
   );
 }
