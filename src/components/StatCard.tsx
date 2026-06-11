@@ -28,12 +28,20 @@ export default function StatCard({ label, value, icon: Icon, accent = 'brand', d
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="card relative overflow-hidden p-5"
+      className="card relative overflow-hidden p-5 hover:shadow-card-lg"
     >
-      <div className="flex items-start justify-between">
-        <span className={cn('grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-glow', ACCENTS[accent])}>
-          <Icon size={20} />
+      {/* Header: icon + label read as one unit; the metric below is the hero. */}
+      <div className="flex items-center gap-2.5">
+        <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br text-white shadow-glow', ACCENTS[accent])}>
+          <Icon size={15} strokeWidth={2.4} />
         </span>
+        <p className="truncate text-[13px] font-medium text-ink-soft">{label}</p>
+      </div>
+
+      <div className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <p className="text-[1.7rem] font-extrabold leading-none tracking-tight tabular-nums lg:text-[2rem]">
+          {formatMoney(value)}
+        </p>
         {delta !== undefined && (
           <span
             className={cn(
@@ -46,8 +54,6 @@ export default function StatCard({ label, value, icon: Icon, accent = 'brand', d
           </span>
         )}
       </div>
-      <p className="mt-4 text-sm font-medium text-ink-soft">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums lg:text-3xl">{formatMoney(value)}</p>
     </motion.div>
   );
 }

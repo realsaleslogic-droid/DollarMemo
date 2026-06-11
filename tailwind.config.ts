@@ -43,8 +43,10 @@ const config: Config = {
         '4xl': '2rem',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(16,24,40,0.04), 0 8px 24px -12px rgba(16,24,40,0.12)',
-        'card-lg': '0 12px 40px -12px rgba(16,24,40,0.18)',
+        // Layered, low-alpha shadows read as "expensive": a crisp key line,
+        // a soft ambient pass, and a wide diffuse falloff.
+        card: '0 1px 2px rgba(16,24,40,0.04), 0 4px 10px -4px rgba(16,24,40,0.05), 0 20px 36px -20px rgba(16,24,40,0.10)',
+        'card-lg': '0 2px 4px rgba(16,24,40,0.04), 0 12px 24px -8px rgba(16,24,40,0.08), 0 28px 56px -16px rgba(16,24,40,0.14)',
         glow: '0 10px 40px -10px rgb(var(--brand-500) / 0.55)',
         'inner-glow': 'inset 0 1px 0 rgba(255,255,255,0.12)',
       },

@@ -100,15 +100,15 @@ export default function TransactionsPage() {
           spacing on mobile to fit the full amount; scales up on wider screens. */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="card p-2.5 sm:p-4">
-          <p className="text-xs font-medium text-ink-soft">Income</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">Income</p>
           <p className="mt-1 text-sm font-extrabold text-income tabular-nums sm:text-lg lg:text-xl">{formatMoney(sum.income)}</p>
         </div>
         <div className="card p-2.5 sm:p-4">
-          <p className="text-xs font-medium text-ink-soft">Spending</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">Spending</p>
           <p className="mt-1 text-sm font-extrabold text-expense tabular-nums sm:text-lg lg:text-xl">{formatMoney(sum.expenses)}</p>
         </div>
         <div className="card p-2.5 sm:p-4">
-          <p className="text-xs font-medium text-ink-soft">Net</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">Net</p>
           <p className={cn('mt-1 text-sm font-extrabold tabular-nums sm:text-lg lg:text-xl', sum.net >= 0 ? 'text-income' : 'text-expense')}>
             {formatMoney(sum.net)}
           </p>
@@ -182,7 +182,7 @@ export default function TransactionsPage() {
           <div className="space-y-5">
             {grouped.map(([day, items]) => (
               <div key={day}>
-                <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-ink-soft">{day}</p>
+                <p className="mb-1.5 px-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-soft/80">{day}</p>
                 <div className="space-y-0.5">
                   {items.map((tx) => (
                     <TransactionRow key={tx.id} tx={tx} showActions onEdit={openEdit} onDelete={removeTransaction} />

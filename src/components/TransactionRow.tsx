@@ -26,20 +26,20 @@ export default function TransactionRow({
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="group flex items-center gap-3 rounded-2xl px-2 py-2.5 transition hover:bg-surface-2"
+      className="group flex items-center gap-3 rounded-2xl px-2.5 py-3 transition-colors duration-200 hover:bg-surface-2"
     >
       <MerchantAvatar merchant={tx.merchant} category={tx.category} className="h-11 w-11 shrink-0" size={20} />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{tx.merchant}</p>
-        <p className="truncate text-xs text-ink-soft">
+        <p className="truncate text-sm font-semibold leading-snug">{tx.merchant}</p>
+        <p className="mt-0.5 truncate text-xs leading-snug text-ink-soft/90">
           {categoryLabel(tx.category)} · {formatDateShort(tx.date)}
           {tx.isRecurring ? ' · recurring' : ''}
         </p>
       </div>
 
       <div className="text-right">
-        <p className={cn('text-sm font-bold tabular-nums', isIncome ? 'text-income' : 'text-expense')}>
+        <p className={cn('text-sm font-bold tabular-nums tracking-tight', isIncome ? 'text-income' : 'text-expense')}>
           {isIncome ? '+' : '-'}
           {formatAbs(tx.amount)}
         </p>
