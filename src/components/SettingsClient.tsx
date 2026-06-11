@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { User, Palette, Coins, Check, Loader2, Sun, Moon, ShieldCheck, FileText, Scale, ChevronRight, Sparkles } from 'lucide-react';
+import { User, Palette, Coins, Check, Loader2, Sun, Moon, ShieldCheck, FileText, Scale, ChevronRight, Sparkles, HelpCircle } from 'lucide-react';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useSessionStore } from '@/store/useSessionStore';
 import { ACCENTS, CURRENCIES, type AccentId } from '@/lib/settings';
@@ -231,6 +231,19 @@ export default function SettingsClient({
           </Link>
         </Section>
       )}
+
+      {/* Help & support */}
+      <Section icon={HelpCircle} title="Help & FAQ" desc="Answers to common questions.">
+        <Link
+          href="/help"
+          className="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm font-semibold transition hover:bg-surface-2"
+        >
+          <span className="flex items-center gap-2.5">
+            <HelpCircle size={17} className="text-ink-soft" /> Help &amp; FAQ
+          </span>
+          <ChevronRight size={16} className="text-ink-soft" />
+        </Link>
+      </Section>
 
       {/* Privacy & legal */}
       <Section icon={ShieldCheck} title="Privacy & legal" desc="How DollarMemo handles your data.">

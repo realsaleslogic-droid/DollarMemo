@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sparkles, HelpCircle } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { NAV_ITEMS } from './nav';
 import { cn } from '@/lib/utils';
@@ -42,22 +42,6 @@ export default function Sidebar() {
             </Link>
           );
         })}
-
-        {(() => {
-          const active = pathname === '/help' || pathname.startsWith('/help/');
-          return (
-            <Link
-              href="/help"
-              className={cn(
-                'mt-1 flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-xs font-medium transition',
-                active ? 'text-brand-600 dark:text-brand-300' : 'text-ink-soft hover:bg-surface-2 hover:text-ink'
-              )}
-            >
-              <HelpCircle size={15} strokeWidth={2.2} />
-              Help &amp; FAQ
-            </Link>
-          );
-        })()}
       </nav>
 
       {mode === 'demo' ? (
