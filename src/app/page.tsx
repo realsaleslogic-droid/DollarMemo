@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, ShieldCheck, Landmark, FileDown, PlayCircle } from 'lucide-react';
+import { ArrowRight, BarChart3, ShieldCheck, Landmark, FileDown, PlayCircle, Lock, Sparkles } from 'lucide-react';
 import HeroCharacter from '@/components/HeroCharacter';
 import BrandLogo from '@/components/BrandLogo';
 import DemoButton from '@/components/DemoButton';
@@ -61,20 +61,40 @@ export default function Landing() {
               <span className="hidden text-ink-soft/50 sm:inline">·</span>
               <span>No sign-up needed to explore the demo</span>
             </div>
+
+            {/* Trust strip */}
+            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-ink-soft">
+              <span className="inline-flex items-center gap-1.5">
+                <Lock size={14} className="text-brand-600 dark:text-brand-300" /> Bank-grade encryption
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Landmark size={14} className="text-brand-600 dark:text-brand-300" /> Powered by Stripe
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles size={14} className="text-brand-600 dark:text-brand-300" /> Free to start
+              </span>
+            </div>
           </div>
 
           {/* Hero mascot */}
           <div className="relative h-[320px] sm:h-[420px]">
-            <div className="absolute inset-0 rounded-[2.5rem] bg-brand-radial opacity-90 shadow-glow" />
+            <div className="hero-glow absolute inset-0 rounded-[2.5rem] bg-brand-radial opacity-90 shadow-glow" />
+            <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-white/15" />
             <HeroCharacter className="absolute inset-0" />
           </div>
         </section>
 
         {/* Feature grid */}
         <section className="grid grid-cols-1 gap-4 pb-20 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="glass p-5">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow">
+          {FEATURES.map((f, i) => (
+            <div
+              key={f.title}
+              className="glass group animate-fade-up relative overflow-hidden p-5 transition duration-300 hover:-translate-y-1 hover:shadow-card-lg"
+              style={{ animationDelay: `${0.15 + i * 0.08}s`, animationFillMode: 'both' }}
+            >
+              {/* accent line that lights up on hover */}
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/70 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow transition-transform duration-300 group-hover:scale-110">
                 <f.icon size={20} />
               </span>
               <h3 className="mt-4 font-bold">{f.title}</h3>
