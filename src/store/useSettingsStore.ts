@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { setActiveCurrency } from '@/lib/format';
 import {
+  ACCENTS,
   ACCENT_STORAGE_KEY,
   CURRENCY_STORAGE_KEY,
   DEFAULT_ACCENT,
@@ -23,7 +24,16 @@ interface SettingsState {
 }
 
 function applyAccent(accent: AccentId) {
-  if (typeof document !== 'undefined') document.documentElement.dataset.accent = accent;
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.accent = accent;
+  // Keep the browser chrome (mobile status bar / toolbar tint) in sync with
+  // the chosen accent — otherwise it stays the default teal.
+  const swatch = ACCENTS.find((a) => a.id === accent)?.swatch;
+  if (swatch) {
+    document
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((m) => m.setAttribute('content', swatch));
+  }
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({

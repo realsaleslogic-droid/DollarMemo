@@ -26,11 +26,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${jakarta.variable} font-sans`}>
-        {/* Apply the saved accent before paint to avoid a color flash. */}
+        {/* Apply the saved accent (incl. the browser-chrome theme color) before
+            paint to avoid a flash of the default teal. */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var a=localStorage.getItem('dm-accent');if(a){document.documentElement.setAttribute('data-accent',a);}}catch(e){}})();",
+              "(function(){try{var a=localStorage.getItem('dm-accent');if(a){document.documentElement.setAttribute('data-accent',a);var s={teal:'#14a085',indigo:'#6366f1',blue:'#3b82f6',violet:'#8b5cf6',pink:'#ec4899',amber:'#f59e0b'}[a];if(s){var m=document.querySelector('meta[name=\"theme-color\"]');if(m)m.setAttribute('content',s);}}}catch(e){}})();",
           }}
         />
         <Providers>{children}</Providers>
