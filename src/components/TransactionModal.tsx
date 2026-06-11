@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Delete, X, Loader2, Repeat } from 'lucide-react';
 import { useUIStore } from '@/store/useUIStore';
@@ -48,7 +49,9 @@ export default function TransactionModal() {
       setAmount('0');
       setMerchant('');
       setCategory('Food');
-      setDate(new Date().toISOString().slice(0, 10));
+      // Local date, not UTC — toISOString() would show tomorrow for evening
+      // users west of UTC.
+      setDate(format(new Date(), 'yyyy-MM-dd'));
       setDescription('');
       setIsRecurring(false);
       setFrequency('monthly');
@@ -72,7 +75,9 @@ export default function TransactionModal() {
     if (numeric <= 0) return;
     setSaving(true);
     const input = {
-      date: new Date(date).toISOString(),
+      // "yyyy-MM-dd" alone parses as UTC midnight (previous day in the
+      // Americas); anchoring to local midnight keeps it on the picked day.
+      date: new Date(`${date}T00:00:00`).toISOString(),
       merchant: merchant.trim() || (type === 'income' ? 'Income' : 'Expense'),
       category: type === 'income' ? 'Income' : category,
       amount: numeric,
