@@ -31,11 +31,11 @@ function decideCategory(
   return rule?.category ?? 'Other';
 }
 
-// How much transaction history to import when an account is linked. 12 months
-// fills the Year view + trend charts and gives recurring detection enough data,
-// without an oversized first sync. (Stripe only returns what each bank shares,
-// so the real depth can be less.)
-const HISTORY_MONTHS = 12;
+// How much transaction history to import when an account is linked. 6 months
+// gives recurring detection and trend charts enough data without an oversized
+// first sync. (Stripe only returns what each bank shares, so the real depth can
+// be less.)
+const HISTORY_MONTHS = 6;
 
 function historyCutoff(): number {
   const d = new Date();

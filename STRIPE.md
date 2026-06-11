@@ -71,7 +71,7 @@ Copy `.env.example` → `.env` and fill in:
   unknown merchants (set `ANTHROPIC_API_KEY`; results are cached so it's cheap)
   → `Other`. Editing a transaction's category teaches the app for next time.
 - **De-dup** — keyed on `(user_id, external_id = Stripe transaction id)`.
-- **History window** — on link we backfill the last **12 months** of
+- **History window** — on link we backfill the last **6 months** of
   transactions (`HISTORY_MONTHS` in `src/lib/stripe/sync.ts`). Stripe only returns
   what each bank shares, so the real depth can be shorter.
 

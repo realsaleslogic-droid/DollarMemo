@@ -11,10 +11,6 @@ const FAQS: { q: string; a: string }[] = [
     a: 'Go to the Accounts page and click “Connect bank.” Linking is handled by Stripe (Stripe Financial Connections), a trusted payments company. You enter your bank login directly with Stripe — DollarMemo never sees or stores your bank password. We only receive your transactions so we can show and categorize them.',
   },
   {
-    q: 'Can I connect a credit card?',
-    a: 'Not right now — DollarMemo links bank accounts only. You can still track card spending by adding those transactions manually from the Add Transaction button.',
-  },
-  {
     q: 'How are my transactions categorized?',
     a: 'Every synced transaction is automatically sorted into a category (Food, Transportation, Subscriptions, and so on) by reading the merchant and the bank’s description. If something lands in the wrong category, just edit it — DollarMemo remembers your choice and categorizes that merchant the same way from then on.',
   },
@@ -24,7 +20,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'How far back does my history go?',
-    a: 'When you first link a bank, DollarMemo pulls in up to the last 12 months of transactions, depending on how much history your bank shares. New transactions then sync going forward.',
+    a: 'When you first link a bank, DollarMemo pulls in up to the last 6 months of transactions, depending on how much history your bank shares. New transactions then sync going forward.',
   },
   {
     q: 'What’s the difference between Free and Pro?',
