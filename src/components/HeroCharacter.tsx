@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * FlowTrack hero mascot — a self-contained, crisp "3D-style" SVG illustration
- * styled after the onboarding reference: a bearded, man-bun character in a
- * green tee and blue jeans, floating, arms outstretched with palms up. A 3D pie
+ * DollarMemo hero mascot — a self-contained, crisp "3D-style" SVG illustration
+ * styled after the onboarding reference: a smiling, clean-shaven man-bun
+ * character in a green tee and blue jeans, arms outstretched with palms up. A 3D pie
  * chart and a 3D gold coin hover above his palms. Heavy use of volumetric
  * gradients, highlights and cast shadows gives it a rendered, dimensional look.
  * The whole figure tilts/parallaxes toward the cursor.
@@ -77,12 +77,6 @@ export default function HeroCharacter({ className }: { className?: string }) {
               <linearGradient id="hairGrad" x1="0.3" y1="0" x2="0.7" y2="1">
                 <stop offset="0" stopColor="#63432b" />
                 <stop offset="1" stopColor="#3a2616" />
-              </linearGradient>
-              {/* beard: lit top -> shadowed bottom */}
-              <linearGradient id="beardGrad" x1="0.5" y1="0" x2="0.5" y2="1">
-                <stop offset="0" stopColor="#6b4a2e" />
-                <stop offset="0.5" stopColor="#4d3320" />
-                <stop offset="1" stopColor="#33210f" />
               </linearGradient>
               <radialGradient id="coinTop" cx="0.38" cy="0.28" r="0.95">
                 <stop offset="0" stopColor="#fff0bf" />
@@ -200,25 +194,19 @@ export default function HeroCharacter({ className }: { className?: string }) {
                 {/* nose */}
                 <path d="M147 98 q3 7 6 1" stroke="#bf8055" strokeWidth="2.6" fill="none" strokeLinecap="round" />
 
-                {/* ---- clean, smooth, natural beard ---- */}
-                {/* soft cast shadow of beard on neck */}
-                <ellipse cx="150" cy="138" rx="24" ry="12" fill="#5a3d28" opacity="0.35" filter="url(#blurMe)" />
-                {/* main beard */}
-                <path d="M118 84
-                         C114 116 128 142 150 144
-                         C172 142 186 116 182 84
-                         C177 104 167 111 150 111
-                         C133 111 123 104 118 84 Z"
-                      fill="url(#beardGrad)" />
-                {/* sideburns into hair */}
-                <path d="M117 78 C114 90 115 100 120 108 C120 96 119 86 122 80 Z" fill="#4d3320" />
-                <path d="M183 78 C186 90 185 100 180 108 C180 96 181 86 178 80 Z" fill="#4d3320" />
-                {/* soft sheen on the beard (single, subtle) */}
-                <path d="M130 108 C138 124 162 124 170 108" stroke="#7a5436" strokeWidth="3.5" fill="none" opacity="0.4" strokeLinecap="round" filter="url(#blurMe)" />
-                {/* mustache */}
-                <path d="M137 106 C143 112 157 112 163 106 C159 113 141 113 137 106 Z" fill="#3d2917" />
-                {/* mouth */}
-                <path d="M144 116 q6 3 12 0" stroke="#9c5e44" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.6" />
+                {/* ---- clean-shaven jaw: soft chin shading for volume ---- */}
+                <ellipse cx="150" cy="120" rx="16" ry="7" fill="#c98a55" opacity="0.25" filter="url(#blurMe)" />
+
+                {/* ---- big friendly smile ---- */}
+                <path d="M136 105 Q150 122 164 105 Q150 113 136 105 Z" fill="#8a4a33" />
+                {/* teeth */}
+                <path d="M139.5 106.5 Q150 113.5 160.5 106.5 Q150 110 139.5 106.5 Z" fill="#ffffff" opacity="0.95" />
+                {/* smile corner creases */}
+                <path d="M133 103.5 q1.5 2.5 4 3.5" stroke="#bf8055" strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.6" />
+                <path d="M167 103.5 q-1.5 2.5 -4 3.5" stroke="#bf8055" strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.6" />
+                {/* happy blush */}
+                <ellipse cx="130" cy="102" rx="5.5" ry="3.5" fill="#e89a6a" opacity="0.45" filter="url(#blurMe)" />
+                <ellipse cx="170" cy="102" rx="5.5" ry="3.5" fill="#e89a6a" opacity="0.45" filter="url(#blurMe)" />
               </g>
             </g>
 
