@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Pencil, Trash2 } from 'lucide-react';
 import MerchantAvatar from './MerchantAvatar';
 import type { Transaction } from '@/lib/types';
@@ -22,12 +21,7 @@ export default function TransactionRow({
   const isIncome = tx.type === 'income';
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="group flex items-center gap-3 rounded-2xl px-2.5 py-3 transition-colors duration-200 hover:bg-surface-2"
-    >
+    <div className="group flex items-center gap-3 rounded-2xl px-2.5 py-3 transition-colors duration-200 hover:bg-surface-2">
       <MerchantAvatar merchant={tx.merchant} category={tx.category} className="h-11 w-11 shrink-0" size={20} />
 
       <div className="min-w-0 flex-1">
@@ -65,6 +59,6 @@ export default function TransactionRow({
           </button>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -20,16 +19,11 @@ const ACCENTS = {
   expense: 'from-[#f4715f] to-[#e0533f]',
 };
 
-export default function StatCard({ label, value, icon: Icon, accent = 'brand', delta, index = 0 }: StatCardProps) {
+export default function StatCard({ label, value, icon: Icon, accent = 'brand', delta }: StatCardProps) {
   const positive = (delta ?? 0) >= 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="card relative overflow-hidden p-5 hover:shadow-card-lg"
-    >
+    <div className="card relative overflow-hidden p-5 hover:shadow-card-lg">
       {/* Header: icon + label read as one unit; the metric below is the hero. */}
       <div className="flex items-center gap-2.5">
         <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br text-white shadow-glow', ACCENTS[accent])}>
@@ -54,6 +48,6 @@ export default function StatCard({ label, value, icon: Icon, accent = 'brand', d
           </span>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
