@@ -26,9 +26,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files — ignore every variant (.env.production etc.); only the
+# secret-free template is tracked.
 .env
+.env.*
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo
