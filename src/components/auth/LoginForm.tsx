@@ -1,11 +1,17 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { login } from '@/app/auth-actions';
 import GoogleButton from './GoogleButton';
 import DemoButton from '@/components/DemoButton';
+
+const URL_ERRORS: Record<string, string> = {
+  cancelled: 'Google sign-in was cancelled. You can try again whenever you like.',
+  auth: 'Sign-in didn’t complete. Please try again — if it keeps happening, use email and password.',
+};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,11 +25,25 @@ function SubmitButton() {
 
 export default function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const [state, action] = useFormState(login, undefined);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Surface auth-callback failures (e.g. /login?error=auth) — read on the
+  // client to keep this page statically renderable.
+  useEffect(() => {
+    const key = new URLSearchParams(window.location.search).get('error');
+    if (key) setUrlError(URL_ERRORS[key] ?? URL_ERRORS.auth);
+  }, []);
 
   return (
     <div>
       <h1 className="text-2xl font-extrabold tracking-tight">Welcome back</h1>
       <p className="mt-1 text-sm text-ink-soft">Log in to your DollarMemo account.</p>
+
+      {urlError && (
+        <p className="mt-4 rounded-xl bg-expense/10 px-3.5 py-2.5 text-sm font-medium text-expense">
+          {urlError}
+        </p>
+      )}
 
       {googleEnabled && (
         <div className="mt-6 space-y-3">
