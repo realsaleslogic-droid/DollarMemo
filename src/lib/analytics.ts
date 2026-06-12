@@ -299,12 +299,15 @@ function buildSubscription(recurringId: string, items: Transaction[], frequency:
   const charge = Math.abs(latest.amount);
 
   // Normalize the charge to monthly/annual figures based on how often it repeats.
-  const annualCost = frequency === 'weekly' ? charge * 52 : frequency === 'yearly' ? charge : charge * 12;
+  const PER_YEAR: Record<string, number> = { weekly: 52, biweekly: 26, monthly: 12, quarterly: 4, yearly: 1 };
+  const annualCost = charge * (PER_YEAR[frequency] ?? 12);
   const monthlyCost = annualCost / 12;
 
   // Project the next billing date one interval after the latest charge.
   const next = new Date(latest.date);
   if (frequency === 'weekly') next.setDate(next.getDate() + 7);
+  else if (frequency === 'biweekly') next.setDate(next.getDate() + 14);
+  else if (frequency === 'quarterly') next.setMonth(next.getMonth() + 3);
   else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
   else next.setMonth(next.getMonth() + 1);
 
@@ -334,6 +337,16 @@ const KNOWN_RECURRING = [
   'microsoft365', 'office365', 'uberone', 'doordashdashpass', 'instacart',
   'planetfitness', 'equinox', 'peloton', 'crunchyroll', 'twitch', 'expressvpn',
   'nordvpn', 'masterclass', 'duolingo', 'calm', 'headspace', 'medium',
+  // gyms & fitness
+  'lafitness', '24hourfitness', 'anytimefitness', 'goldsgym', 'orangetheory',
+  'crunchfitness', 'ymca', 'classpass',
+  // insurance (billed on a fixed schedule)
+  'geico', 'progressive', 'statefarm', 'allstate', 'lemonade insurance', 'lemonadeins',
+  // meal kits & boxes
+  'hellofresh', 'blueapron', 'factor75', 'dollarshaveclub', 'barkbox', 'ipsy', 'fabfitfun',
+  // more streaming/software
+  'siriusxm', 'pandora', 'tidal', 'paramountplus', 'discoveryplus', 'espnplus',
+  'substack', 'onlyfans', 'squarespace', 'wix', 'godaddy', '1password', 'lastpass',
 ];
 
 function isKnownRecurring(normalizedKey: string): boolean {
@@ -376,27 +389,39 @@ function median(nums: number[]): number {
   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
 }
 
+// Categories where the bill arrives on a fixed schedule but the amount moves
+// month to month (electricity in summer, water, a phone bill with overages).
+// For these, regular SPACING is the real signal, so amounts may vary more.
+const BILL_CATEGORIES = new Set(['Utilities', 'Housing', 'Healthcare', 'Subscriptions']);
+
 /**
  * Infer a billing cadence from a payee's charges. Returns a frequency only when
- * the charges repeat at a regular interval with consistent amounts — so true
+ * the charges repeat at a regular interval — exact amounts for subscriptions,
+ * looser amounts for bill-style categories (utilities etc.) — so true
  * subscriptions/bills are caught while ad-hoc spending (groceries, gas) isn't.
  */
 function detectCadence(items: Transaction[]): string | null {
   if (items.length < 3) return null;
 
-  // Amounts must be reasonably consistent (subscriptions are exact; bills vary a little).
+  // Amount consistency (coefficient of variation). Subscriptions are exact;
+  // utility-style bills swing with usage, so they get a looser ceiling.
   const amounts = items.map((t) => Math.abs(t.amount));
   const mean = amounts.reduce((a, b) => a + b, 0) / amounts.length;
   if (mean <= 0) return null;
   const variance = amounts.reduce((a, b) => a + (b - mean) ** 2, 0) / amounts.length;
   const cv = Math.sqrt(variance) / mean;
-  if (cv > 0.35) return null;
+  const billLike = items.filter((t) => BILL_CATEGORIES.has(t.category)).length > items.length / 2;
+  if (cv > (billLike ? 0.65 : 0.35)) return null;
 
-  // Gaps between consecutive charges, in days.
-  const dates = items.map((t) => +new Date(t.date)).sort((a, b) => a - b);
+  // Charge dates, collapsing near-duplicates (a split charge or a same-day
+  // retry would otherwise inject ~0-day gaps and wreck the median).
+  const dates = [...new Set(items.map((t) => +new Date(t.date)))].sort((a, b) => a - b);
   const gaps: number[] = [];
-  for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / 86_400_000);
-  if (!gaps.length) return null;
+  for (let i = 1; i < dates.length; i++) {
+    const g = (dates[i] - dates[i - 1]) / 86_400_000;
+    if (g >= 2) gaps.push(g);
+  }
+  if (gaps.length < 2) return null;
 
   const med = median(gaps);
   // Most gaps should sit near the median (regular cadence, not random repeats).
@@ -405,7 +430,9 @@ function detectCadence(items: Transaction[]): string | null {
   if (regular < 0.6) return null;
 
   if (med >= 5 && med <= 10) return 'weekly';
+  if (med >= 11 && med <= 18) return 'biweekly';
   if (med >= 24 && med <= 38) return 'monthly';
+  if (med >= 80 && med <= 100) return 'quarterly';
   if (med >= 330 && med <= 400) return 'yearly';
   return null;
 }

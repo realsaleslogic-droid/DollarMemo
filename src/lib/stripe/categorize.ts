@@ -118,14 +118,27 @@ const RULES: { category: CategoryId; tokens: string[] }[] = [
   },
 ];
 
+// Compile tokens to word-boundary regexes once. Short tokens (<=4 chars, e.g.
+// "bp", "gap", "kfc") must match a whole word so they can't fire inside longer
+// words ("webpay", "gaping"); longer tokens keep prefix matching ("mcdonald"
+// still matches "mcdonalds").
+const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const COMPILED = RULES.map((rule) => ({
+  category: rule.category,
+  patterns: rule.tokens.map((raw) => {
+    const t = raw.trim();
+    return new RegExp(t.length <= 4 ? `\\b${esc(t)}\\b` : `\\b${esc(t)}`);
+  }),
+}));
+
 /** Infer a category from a cleaned merchant name. Unknown -> 'Other'. */
 export function categorizeMerchant(merchant: string): CategoryId {
   const m = (merchant || '').toLowerCase();
   if (!m) return 'Other';
   // Transfers between your own accounts aren't spending categories.
   if (m.startsWith('transfer')) return 'Other';
-  for (const rule of RULES) {
-    if (rule.tokens.some((t) => m.includes(t))) return rule.category;
+  for (const rule of COMPILED) {
+    if (rule.patterns.some((re) => re.test(m))) return rule.category;
   }
   return 'Other';
 }

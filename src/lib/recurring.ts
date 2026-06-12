@@ -3,6 +3,8 @@ import type { Subscription } from './analytics';
 /** The amount of a single charge (not the normalized monthly figure). */
 export function perCharge(s: Subscription): number {
   if (s.frequency === 'weekly') return s.annualCost / 52;
+  if (s.frequency === 'biweekly') return s.annualCost / 26;
+  if (s.frequency === 'quarterly') return s.annualCost / 4;
   if (s.frequency === 'yearly') return s.annualCost;
   return s.monthlyCost;
 }
@@ -10,6 +12,8 @@ export function perCharge(s: Subscription): number {
 function step(d: Date, freq: string, dir: 1 | -1): Date {
   const n = new Date(d);
   if (freq === 'weekly') n.setDate(n.getDate() + 7 * dir);
+  else if (freq === 'biweekly') n.setDate(n.getDate() + 14 * dir);
+  else if (freq === 'quarterly') n.setMonth(n.getMonth() + 3 * dir);
   else if (freq === 'yearly') n.setFullYear(n.getFullYear() + dir);
   else n.setMonth(n.getMonth() + dir);
   return n;
