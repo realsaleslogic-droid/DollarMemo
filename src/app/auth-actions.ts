@@ -56,7 +56,13 @@ export async function loginWithGoogle() {
   const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${origin()}/auth/callback` },
+    options: {
+      redirectTo: `${origin()}/auth/callback`,
+      // Always show Google's account chooser. Without this, Google silently
+      // re-approves the last account — pressing the button right after a
+      // logout flashes the user straight back in with no choice.
+      queryParams: { prompt: 'select_account' },
+    },
   });
   if (error) throw error;
   if (data.url) redirect(data.url);
