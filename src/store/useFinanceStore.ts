@@ -51,6 +51,11 @@ function saveDemoData(txs: Transaction[]) {
   }
 }
 
+interface PendingDelete {
+  tx: Transaction;
+  index: number; // original position, so Undo restores it in place
+}
+
 interface FinanceState {
   transactions: Transaction[];
   hydrated: boolean;
@@ -59,6 +64,7 @@ interface FinanceState {
   granularity: Granularity;
   hasMore: boolean;
   loadingMore: boolean;
+  pendingDelete: PendingDelete | null;
 
   setPeriod: (p: Period) => void;
   setGranularity: (g: Granularity) => void;
@@ -68,8 +74,17 @@ interface FinanceState {
 
   addTransaction: (input: TransactionInput) => Promise<void>;
   editTransaction: (id: string, input: TransactionInput) => Promise<void>;
+  /** Soft-delete: removes from the UI now, commits after a short undo window. */
   removeTransaction: (id: string) => Promise<void>;
+  /** Restore the most recently deleted transaction (within the undo window). */
+  undoDelete: () => void;
+  /** Persist the pending deletion immediately (timer fired, or superseded). */
+  commitPendingDelete: () => Promise<void>;
 }
+
+// Module-scoped so it survives component unmounts/navigation within the SPA.
+let commitTimer: ReturnType<typeof setTimeout> | null = null;
+const UNDO_WINDOW_MS = 5000;
 
 export const useFinanceStore = create<FinanceState>((set, get) => ({
   transactions: [],
@@ -79,6 +94,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   granularity: 'monthly',
   hasMore: false,
   loadingMore: false,
+  pendingDelete: null,
 
   setPeriod: (period) => set({ period }),
   setGranularity: (granularity) => set({ granularity }),
@@ -132,13 +148,57 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   removeTransaction: async (id) => {
+    // Any prior pending deletion becomes permanent the moment a new one starts.
+    await get().commitPendingDelete();
+
+    const txs = get().transactions;
+    const index = txs.findIndex((t) => t.id === id);
+    if (index === -1) return;
+    const tx = txs[index];
+
+    // Remove from the UI immediately (every view updates), but DON'T persist or
+    // hit the server yet — that happens on commit, so Undo needs no re-create.
+    set({ transactions: txs.filter((t) => t.id !== id), pendingDelete: { tx, index } });
+
+    if (commitTimer) clearTimeout(commitTimer);
+    commitTimer = setTimeout(() => {
+      void get().commitPendingDelete();
+    }, UNDO_WINDOW_MS);
+  },
+
+  undoDelete: () => {
+    const pd = get().pendingDelete;
+    if (!pd) return;
+    if (commitTimer) {
+      clearTimeout(commitTimer);
+      commitTimer = null;
+    }
+    const next = [...get().transactions];
+    next.splice(Math.min(pd.index, next.length), 0, pd.tx);
+    set({ transactions: next, pendingDelete: null });
+    if (get().mode === 'demo') saveDemoData(next);
+  },
+
+  commitPendingDelete: async () => {
+    const pd = get().pendingDelete;
+    if (!pd) return;
+    if (commitTimer) {
+      clearTimeout(commitTimer);
+      commitTimer = null;
+    }
+    set({ pendingDelete: null });
+
     if (get().mode === 'demo') {
-      const next = get().transactions.filter((t) => t.id !== id);
-      set({ transactions: next });
-      saveDemoData(next);
+      saveDemoData(get().transactions);
       return;
     }
-    await deleteTransaction(id);
-    set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
+    try {
+      await deleteTransaction(pd.tx.id);
+    } catch {
+      // Server delete failed — put the row back so we never silently lose data.
+      const next = [...get().transactions];
+      next.splice(Math.min(pd.index, next.length), 0, pd.tx);
+      set({ transactions: next });
+    }
   },
 }));

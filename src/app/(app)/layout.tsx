@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import AppBootstrap from '@/components/AppBootstrap';
 import TransactionModal from '@/components/TransactionModal';
+import DeleteUndoToast from '@/components/DeleteUndoToast';
 import type { SessionUser } from '@/store/useSessionStore';
 
 export const dynamic = 'force-dynamic';
@@ -53,6 +54,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </main>
       <BottomNav />
       <TransactionModal />
+      <DeleteUndoToast />
     </div>
   );
 }
