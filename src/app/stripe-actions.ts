@@ -102,11 +102,37 @@ export async function linkAccounts(accountIds: string[]): Promise<SyncResult> {
   return result;
 }
 
-/** Manually re-sync all linked accounts. */
+// Minimum spacing between syncs for one user. Set just under the post-connect
+// auto-import poll interval (6s) so the legitimate first-import retries and a
+// normal manual "Sync now" always pass, while a scripted sync loop is throttled
+// to ~one call every few seconds instead of hammering Stripe.
+const SYNC_COOLDOWN_MS = 5000;
+
+/** Manually re-sync all linked accounts (rate-limited per user). */
 export async function syncTransactions(): Promise<SyncResult> {
   assertStripeConfigured();
   const user = await requireUser();
-  const result = await syncStripeForUser(createAdminClient(), stripeClient(), user.id);
+  const admin = createAdminClient();
+
+  // Cooldown gate: if this user's accounts were synced within the last few
+  // seconds, skip hitting Stripe and report "nothing new". Read from the DB so
+  // the limit holds across serverless instances (in-memory wouldn't). The
+  // auto-import polls every 6s, comfortably above the 5s window.
+  const { data: recent } = await admin
+    .from('stripe_accounts')
+    .select('last_synced_at')
+    .eq('user_id', user.id)
+    .not('last_synced_at', 'is', null)
+    .order('last_synced_at', { ascending: false })
+    .limit(1);
+  const lastAt = recent?.[0]?.last_synced_at
+    ? new Date(recent[0].last_synced_at as string).getTime()
+    : 0;
+  if (Date.now() - lastAt < SYNC_COOLDOWN_MS) {
+    return { added: 0 };
+  }
+
+  const result = await syncStripeForUser(admin, stripeClient(), user.id);
   revalidateAll();
   return result;
 }
