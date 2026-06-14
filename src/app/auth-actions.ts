@@ -32,7 +32,18 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     },
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    // Supabase enforces one account per email. Make the collision message clear.
+    if (/already|exists|registered/i.test(error.message)) {
+      return { error: 'An account with this email already exists. Please log in instead.' };
+    }
+    return { error: error.message };
+  }
+  // Email already in use + "Confirm email" on: Supabase returns a user with no
+  // identities (to avoid leaking which emails exist). Treat it the same way.
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    return { error: 'An account with this email already exists. Please log in instead.' };
+  }
   // If "Confirm email" is enabled in Supabase, there's no session yet.
   if (!data.session) {
     return { message: 'Check your email to confirm your account, then log in.' };
