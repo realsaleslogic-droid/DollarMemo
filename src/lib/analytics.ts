@@ -394,14 +394,30 @@ function median(nums: number[]): number {
 // For these, regular SPACING is the real signal, so amounts may vary more.
 const BILL_CATEGORIES = new Set(['Utilities', 'Housing', 'Healthcare', 'Subscriptions']);
 
+// Map a typical gap (days) to a billing cadence, or null if it fits no clean
+// interval (which naturally rejects irregular, ad-hoc spending).
+function bandForGap(med: number): string | null {
+  if (med >= 5 && med <= 10) return 'weekly';
+  if (med >= 11 && med <= 18) return 'biweekly';
+  if (med >= 24 && med <= 38) return 'monthly';
+  if (med >= 80 && med <= 100) return 'quarterly';
+  if (med >= 330 && med <= 400) return 'yearly';
+  return null;
+}
+
 /**
  * Infer a billing cadence from a payee's charges. Returns a frequency only when
  * the charges repeat at a regular interval — exact amounts for subscriptions,
  * looser amounts for bill-style categories (utilities etc.) — so true
  * subscriptions/bills are caught while ad-hoc spending (groceries, gas) isn't.
+ *
+ * Works from as few as TWO charges, but a two-charge match is held to a much
+ * stricter bar (near-identical amounts + a clean interval), since a single gap
+ * could be coincidence — this catches new subscriptions quickly without turning
+ * two random same-priced purchases into a "subscription".
  */
 function detectCadence(items: Transaction[]): string | null {
-  if (items.length < 3) return null;
+  if (items.length < 2) return null;
 
   // Amount consistency (coefficient of variation). Subscriptions are exact;
   // utility-style bills swing with usage, so they get a looser ceiling.
@@ -411,7 +427,6 @@ function detectCadence(items: Transaction[]): string | null {
   const variance = amounts.reduce((a, b) => a + (b - mean) ** 2, 0) / amounts.length;
   const cv = Math.sqrt(variance) / mean;
   const billLike = items.filter((t) => BILL_CATEGORIES.has(t.category)).length > items.length / 2;
-  if (cv > (billLike ? 0.65 : 0.35)) return null;
 
   // Charge dates, collapsing near-duplicates (a split charge or a same-day
   // retry would otherwise inject ~0-day gaps and wreck the median).
@@ -421,20 +436,48 @@ function detectCadence(items: Transaction[]): string | null {
     const g = (dates[i] - dates[i - 1]) / 86_400_000;
     if (g >= 2) gaps.push(g);
   }
-  if (gaps.length < 2) return null;
+  if (gaps.length < 1) return null;
 
   const med = median(gaps);
-  // Most gaps should sit near the median (regular cadence, not random repeats).
+
+  // Two charges (a single gap): no way to confirm a *rhythm*, so require the
+  // amounts to be effectively identical and the interval to land cleanly in a
+  // band. This is the guard that prevents accidental subscriptions.
+  if (gaps.length < 2) {
+    if (cv > 0.12) return null;
+    return bandForGap(med);
+  }
+
+  // Three or more charges: amounts may vary a little (more for utility bills),
+  // and most gaps must cluster near the median (a real rhythm, not noise).
+  if (cv > (billLike ? 0.65 : 0.35)) return null;
   const tolerance = Math.max(4, med * 0.4);
   const regular = gaps.filter((g) => Math.abs(g - med) <= tolerance).length / gaps.length;
   if (regular < 0.6) return null;
 
-  if (med >= 5 && med <= 10) return 'weekly';
-  if (med >= 11 && med <= 18) return 'biweekly';
-  if (med >= 24 && med <= 38) return 'monthly';
-  if (med >= 80 && med <= 100) return 'quarterly';
-  if (med >= 330 && med <= 400) return 'yearly';
-  return null;
+  return bandForGap(med);
+}
+
+// Approximate days per cycle, used to tell an active subscription from one that
+// has clearly stopped (likely cancelled).
+const INTERVAL_DAYS: Record<string, number> = {
+  weekly: 7,
+  biweekly: 14,
+  monthly: 30,
+  quarterly: 91,
+  yearly: 365,
+};
+
+/**
+ * Is an auto-detected subscription still active? We only consider it cancelled
+ * once it has missed clearly MORE than a full cycle (a generous ~1.5 cycles +
+ * buffer), so a charge that's merely pending or a few days late never makes an
+ * active subscription disappear. Manually-flagged recurring items are exempt.
+ */
+function isLikelyActive(sub: Subscription, now: number): boolean {
+  const interval = INTERVAL_DAYS[sub.frequency] ?? 30;
+  const daysSince = (now - new Date(sub.lastCharge).getTime()) / 86_400_000;
+  return daysSince <= interval * 1.5 + 10;
 }
 
 /**
@@ -510,7 +553,13 @@ export function detectSubscriptions(txs: Transaction[]): Subscription[] {
     subs.push(sub);
   }
 
-  return subs.sort((a, b) => b.monthlyCost - a.monthlyCost);
+  // Drop auto-detected subscriptions that have clearly stopped charging (likely
+  // cancelled). Manually-flagged recurring items (non-"auto" ids) are kept as-is
+  // — the user told us those are recurring, so we don't second-guess them.
+  const now = Date.now();
+  return subs
+    .filter((s) => !s.recurringId.startsWith('auto') || isLikelyActive(s, now))
+    .sort((a, b) => b.monthlyCost - a.monthlyCost);
 }
 
 /** Just the subscription-category recurring services (Netflix, Spotify…). */
