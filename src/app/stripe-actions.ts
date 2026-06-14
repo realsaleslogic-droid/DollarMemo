@@ -171,11 +171,20 @@ export async function removeConnection(id: string): Promise<{ id: string }> {
     .single();
 
   if (data?.account_id) {
+    const accountId = data.account_id as string;
     try {
-      await stripeClient().financialConnections.accounts.disconnect(data.account_id as string);
+      await stripeClient().financialConnections.accounts.disconnect(accountId);
     } catch {
       /* still remove our reference below */
     }
+    // Remove the transactions this account imported, so they don't linger as
+    // orphaned duplicates after the account is gone (which would double totals
+    // and confuse recurring/category detection).
+    await admin
+      .from('transactions')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('account_id', accountId);
   }
   await admin.from('stripe_accounts').delete().eq('id', id).eq('user_id', user.id);
   revalidateAll();

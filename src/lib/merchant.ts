@@ -57,15 +57,19 @@ const BRAND_DISPLAY: { tokens: string[]; name: string }[] = [
   { tokens: ['t-mobile', 'tmobile'], name: 'T-Mobile' },
 ];
 
-// Filler tokens that add no meaning in a statement descriptor.
-const NOISE = /\b(pos|purchase|payment|pmt|debit|credit|ach|recurring|autopay|web|online|bill|billpay|transaction|trans|ref|invoice|inv|auth|des|tot|intl|transfer|from|to)\b/gi;
+// Filler tokens that add no meaning in a statement descriptor. Includes
+// PayPal/transfer artifacts (inst xfer, iat, "shopping logic") and company
+// suffixes (inc/llc/...) that pollute the real merchant name.
+const NOISE = /\b(pos|purchase|payment|pmt|debit|credit|ach|recurring|autopay|web|online|bill|billpay|transaction|trans|ref|invoice|inv|auth|des|tot|intl|transfer|xfer|inst|iat|from|to|inc|llc|ltd|corp|co|dba)\b/gi;
 
 function stripNoise(s: string): string {
   return s
     .replace(/\*/g, ' ')
     .replace(/[#_|]+/g, ' ')
+    .replace(/\bshopping\s+logic\b/gi, ' ') // PayPal boilerplate on every line
     .replace(/\.(com|net|org|io|co|app|gov)\b/gi, ' ') // strip TLDs
     .replace(/\b\d[\d-]{3,}\b/g, ' ') // long reference numbers / dates
+    .replace(/\b[a-z]{1,3}-[a-z0-9]*\d[a-z0-9]*\b/gi, ' ') // hyphenated ref codes w/ a digit, e.g. "o-y39" (not "t-mobile")
     .replace(NOISE, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
