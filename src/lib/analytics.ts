@@ -467,17 +467,47 @@ export function detectSubscriptions(txs: Transaction[]): Subscription[] {
     arr.push(t);
     byMerchant.set(key, arr);
   }
+  const detectedMerchants = new Set<string>();
   for (const [key, items] of byMerchant) {
     const cadence = detectCadence(items);
     if (cadence) {
       // A real repeating pattern (3+ regular charges) — high confidence.
       subs.push(buildSubscription(`auto_${key}`, items, cadence));
+      detectedMerchants.add(key);
     } else if (isKnownRecurring(key) && looksLikeKnownSubscription(items)) {
       // Recognized brand with too little history yet to prove a pattern: treat
       // as a monthly subscription, but guard against one-time purchases from the
       // same brand (e.g. a pricey one-off, or inconsistent charges).
       subs.push(buildSubscription(`auto_${key}`, items, 'monthly'));
+      detectedMerchants.add(key);
     }
+  }
+
+  // 3) Fixed-price subscriptions hidden inside a merchant that ALSO has other
+  //    charges — common with payment intermediaries (PayPal, Apple App Store)
+  //    where many different services share one merchant name and the amounts
+  //    look chaotic overall. Grouping by merchant + exact amount lets a steady
+  //    $0.99/mo (e.g. iCloud) surface from the noise around it. We only do this
+  //    for merchants not already detected above, so nothing double-reports.
+  const byMerchantAmount = new Map<string, Transaction[]>();
+  for (const t of txs) {
+    if (t.type !== 'expense' || (t.isRecurring && t.recurringId)) continue;
+    const mkey = normalizeMerchant(t.merchant);
+    if (!mkey || detectedMerchants.has(mkey)) continue;
+    const cents = Math.round(Math.abs(t.amount) * 100);
+    if (cents <= 0) continue;
+    const key = `${mkey}#${cents}`;
+    const arr = byMerchantAmount.get(key) ?? [];
+    arr.push(t);
+    byMerchantAmount.set(key, arr);
+  }
+  for (const [key, items] of byMerchantAmount) {
+    const cadence = detectCadence(items);
+    if (!cadence) continue;
+    const sub = buildSubscription(`auto_amt_${key}`, items, cadence);
+    // Disambiguate from any sibling charges at a different price on this merchant.
+    sub.name = `${sub.name} · $${Math.abs(items[0].amount).toFixed(2)}`;
+    subs.push(sub);
   }
 
   return subs.sort((a, b) => b.monthlyCost - a.monthlyCost);
