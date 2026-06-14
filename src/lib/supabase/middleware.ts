@@ -7,6 +7,19 @@ const PROTECTED = ['/dashboard', '/transactions', '/reports', '/recurring'];
 const AUTH_PAGES = ['/', '/login', '/signup'];
 
 /**
+ * Build a redirect that carries over any cookies the Supabase client just set
+ * on `source`. Critical: when getUser() refreshes the session it rotates the
+ * tokens and writes new cookies onto `source`; returning a bare redirect would
+ * drop them, invalidating the (now-rotated) refresh token and logging the user
+ * out on the next request. Always redirect through this.
+ */
+function redirectWithCookies(url: URL, source: NextResponse): NextResponse {
+  const redirect = NextResponse.redirect(url);
+  source.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  return redirect;
+}
+
+/**
  * Refreshes the Supabase session on every request and gates the app routes.
  * Signed-out visitors are allowed through only if they're in demo mode
  * (ft_demo cookie); otherwise they're redirected to /login.
@@ -62,7 +75,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(url);
+    return redirectWithCookies(url, response);
   }
 
   // Already signed in? The landing/login/signup pages only show logged-out UI,
@@ -71,7 +84,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     url.search = '';
-    return NextResponse.redirect(url);
+    return redirectWithCookies(url, response);
   }
 
   return response;
