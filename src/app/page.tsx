@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, ShieldCheck, Landmark, FileDown, PlayCircle, Lock } from 'lucide-react';
+import { ArrowRight, BarChart3, ShieldCheck, Landmark, FileDown, PlayCircle } from 'lucide-react';
 import HeroCharacter from '@/components/HeroCharacter';
 import BrandLogo from '@/components/BrandLogo';
 import DemoButton from '@/components/DemoButton';
@@ -8,7 +8,7 @@ const FEATURES = [
   { icon: BarChart3, title: 'Live analytics', desc: 'Spending by category, trends and net cash flow update in real time.' },
   { icon: Landmark, title: 'Connect your bank', desc: 'Securely link a bank and sync your transactions in automatically — tracked and categorized for you.' },
   { icon: FileDown, title: 'Statements', desc: 'Export polished CSV & PDF financial statements in one click.' },
-  { icon: ShieldCheck, title: 'Private & secure', desc: 'Your data is tied to your account — yours alone.' },
+  { icon: ShieldCheck, title: 'Private & secure', desc: 'Bank connections are handled by Stripe — your bank login is never seen or stored. Your data is yours alone.' },
 ];
 
 export default function Landing() {
@@ -60,17 +60,6 @@ export default function Landing() {
               </span>
               <span className="hidden text-ink-soft/50 sm:inline">·</span>
               <span>No sign-up needed to explore the demo</span>
-            </div>
-
-            {/* Secure bank connection trust strip */}
-            <div className="mt-6 inline-flex items-center gap-2.5 rounded-xl border border-line bg-surface/70 px-3.5 py-2.5 backdrop-blur">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-300">
-                <Lock size={15} />
-              </span>
-              <p className="text-xs leading-snug text-ink-soft">
-                <span className="font-semibold text-ink">Bank-level secure.</span> Connections are
-                handled by Stripe — your bank login is never seen or stored by DollarMemo.
-              </p>
             </div>
           </div>
 
