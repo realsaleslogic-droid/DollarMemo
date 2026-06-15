@@ -37,12 +37,10 @@ export default function RecurringPage() {
     };
   }, [mode, transactions.length]);
 
-  const { subs, services, bills, monthlyTotal, yearlyTotal } = useMemo(() => {
+  const { subs, monthlyTotal, yearlyTotal } = useMemo(() => {
     const all = server ?? detectSubscriptions(transactions);
-    const services = all.filter((s) => s.category === 'Subscriptions');
-    const bills = all.filter((s) => s.category !== 'Subscriptions');
     const monthlyTotal = all.reduce((s, x) => s + x.monthlyCost, 0);
-    return { subs: all, services, bills, monthlyTotal, yearlyTotal: all.reduce((s, x) => s + x.annualCost, 0) };
+    return { subs: all, monthlyTotal, yearlyTotal: all.reduce((s, x) => s + x.annualCost, 0) };
   }, [transactions, server]);
 
   const stats = [
@@ -91,24 +89,16 @@ export default function RecurringPage() {
         </div>
       )}
 
-      {/* Subscriptions */}
-      <h2 className="mb-3 mt-6 text-lg font-bold">Subscriptions</h2>
+      {/* Recurring payments (subscriptions + bills together) */}
+      <h2 className="mb-3 mt-6 text-lg font-bold">Recurring Payments</h2>
       {ready ? (
-        <SubscriptionGrid subscriptions={services} />
+        <SubscriptionGrid subscriptions={subs} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="skeleton h-40" />
           ))}
         </div>
-      )}
-
-      {/* Bills */}
-      {ready && bills.length > 0 && (
-        <>
-          <h2 className="mb-3 mt-8 text-lg font-bold">Bills & Recurring Payments</h2>
-          <SubscriptionGrid subscriptions={bills} />
-        </>
       )}
     </>
   );
