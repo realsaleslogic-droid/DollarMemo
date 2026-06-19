@@ -2,30 +2,23 @@
 
 import { Landmark, Loader2 } from 'lucide-react';
 import { useConnectBank } from './useConnectBank';
-import { BankTrustLine } from '@/components/BankTrust';
 import { cn } from '@/lib/utils';
 
 /**
  * Opens Stripe Financial Connections to link a bank/card, then syncs and
  * refreshes so the new transactions appear everywhere.
- *
- * `withSecurityNote` adds the small "Secured by Stripe" line under the button
- * (used on the Accounts page) — left off in the dashboard header so it doesn't
- * change the header's height.
  */
 export default function ConnectBankButton({
   className,
   onLinked,
-  withSecurityNote = false,
 }: {
   className?: string;
   onLinked?: () => void;
-  withSecurityNote?: boolean;
 }) {
   const { connect, busy, importing, error } = useConnectBank(onLinked);
 
   return (
-    <div className={cn('inline-flex flex-col items-start', withSecurityNote ? 'gap-1.5' : 'gap-1')}>
+    <div className="inline-flex flex-col items-start gap-1">
       <button
         onClick={connect}
         disabled={busy || importing}
@@ -43,7 +36,6 @@ export default function ConnectBankButton({
         </p>
       )}
       {error && <p className="max-w-xs text-xs text-expense">{error}</p>}
-      {withSecurityNote && !importing && !error && <BankTrustLine />}
     </div>
   );
 }

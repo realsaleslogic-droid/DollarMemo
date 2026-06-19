@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Landmark, RefreshCw, Trash2, ShieldCheck, AlertTriangle, CheckCircle2, Sparkles } from 'lucide-react';
 import ConnectBankButton from './ConnectBankButton';
-import { BankTrustBadge } from '@/components/BankTrust';
 import { listConnections, syncTransactions, removeConnection, type Connection } from '@/app/stripe-actions';
 import type { PlanInfo } from '@/app/billing-actions';
 import { formatDate } from '@/lib/format';
@@ -113,7 +112,7 @@ export default function AccountsClient({
             )}
           </div>
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           {connections.length > 0 && (
             <button
               onClick={handleSync}
@@ -132,7 +131,7 @@ export default function AccountsClient({
               <Sparkles size={17} /> Upgrade to connect more
             </Link>
           ) : (
-            <ConnectBankButton onLinked={refresh} withSecurityNote />
+            <ConnectBankButton onLinked={refresh} />
           )}
         </div>
       </div>
@@ -152,7 +151,6 @@ export default function AccountsClient({
           <p className="max-w-sm text-sm text-ink-soft">
             Connect a bank to pull in real transactions and let DollarMemo track and categorize your spending.
           </p>
-          <BankTrustBadge className="mt-3" />
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
