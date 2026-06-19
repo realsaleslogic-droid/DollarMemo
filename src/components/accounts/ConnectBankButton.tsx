@@ -2,6 +2,7 @@
 
 import { Landmark, Loader2 } from 'lucide-react';
 import { useConnectBank } from './useConnectBank';
+import { BankTrustLine } from '@/components/BankTrust';
 import { cn } from '@/lib/utils';
 
 /**
@@ -36,6 +37,7 @@ export default function ConnectBankButton({
         </p>
       )}
       {error && <p className="max-w-xs text-xs text-expense">{error}</p>}
+      {!importing && !error && <BankTrustLine className="max-w-xs" />}
     </div>
   );
 }
