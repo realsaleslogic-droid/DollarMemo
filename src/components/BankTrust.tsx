@@ -21,14 +21,12 @@ export function BankTrustBadge({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border border-brand-500/25 bg-brand-500/10 px-3.5 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-300',
+        'inline-flex items-center gap-2 rounded-full border border-brand-500/25 bg-brand-500/10 px-3.5 py-1.5 text-xs font-bold text-brand-700 dark:text-brand-300',
         className
       )}
     >
       <ShieldCheck size={14} className="shrink-0 text-brand-600 dark:text-brand-300" />
-      <span>
-        Securely <span className="font-bold">handled by Stripe</span>
-      </span>
+      <span>Handled by Stripe</span>
     </div>
   );
 }
