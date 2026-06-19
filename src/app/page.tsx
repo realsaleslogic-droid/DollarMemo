@@ -5,10 +5,10 @@ import BrandLogo from '@/components/BrandLogo';
 import DemoButton from '@/components/DemoButton';
 
 const FEATURES = [
+  { icon: ShieldCheck, title: 'Private & secure', desc: 'Bank connections are handled by Stripe — your bank login is never seen or stored. Your data is yours alone.' },
   { icon: BarChart3, title: 'Live analytics', desc: 'Spending by category, trends and net cash flow update in real time.' },
   { icon: Landmark, title: 'Connect your bank', desc: 'Securely link a bank and sync your transactions in automatically — tracked and categorized for you.' },
   { icon: FileDown, title: 'Statements', desc: 'Export polished CSV & PDF financial statements in one click.' },
-  { icon: ShieldCheck, title: 'Private & secure', desc: 'Bank connections are handled by Stripe — your bank login is never seen or stored. Your data is yours alone.' },
 ];
 
 export default function Landing() {
