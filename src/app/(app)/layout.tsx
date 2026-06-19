@@ -7,6 +7,7 @@ import type { Transaction } from '@/lib/types';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import AppBootstrap from '@/components/AppBootstrap';
+import AutoSync from '@/components/AutoSync';
 import TransactionModal from '@/components/TransactionModal';
 import DeleteUndoToast from '@/components/DeleteUndoToast';
 import type { SessionUser } from '@/store/useSessionStore';
@@ -48,6 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="app-bg flex min-h-screen">
       <AppBootstrap mode={mode} user={sessionUser} transactions={transactions} />
+      {user && <AutoSync />}
       <Sidebar />
       <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-3 sm:px-6 lg:pb-10">
         {children}

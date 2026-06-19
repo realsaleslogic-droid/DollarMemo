@@ -4,10 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { stripeClient } from '@/lib/stripe/client';
-import { assertStripeConfigured } from '@/lib/stripe/config';
+import { assertStripeConfigured, isStripeConfigured } from '@/lib/stripe/config';
 import { getOrCreateCustomer } from '@/lib/stripe/customer';
 import { getUserPlan, accountLimit, ACCOUNT_LIMITS } from '@/lib/stripe/plan';
 import { syncStripeForUser, type SyncResult } from '@/lib/stripe/sync';
+import { rowToTransaction, type Row } from '@/lib/transactionRow';
+import { TRANSACTION_COLUMNS, INITIAL_TRANSACTION_LOAD } from '@/lib/pagination';
+import type { Transaction } from '@/lib/types';
 
 export interface Connection {
   id: string;
@@ -135,6 +138,55 @@ export async function syncTransactions(): Promise<SyncResult> {
   const result = await syncStripeForUser(admin, stripeClient(), user.id);
   revalidateAll();
   return result;
+}
+
+// How long synced data is considered fresh for background auto-sync. The app
+// auto-syncs on load and on an interval, but only actually hits Stripe when the
+// last sync is older than this — so navigating around doesn't re-sync.
+const AUTO_SYNC_STALE_MS = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Background sync used by the app so the user never has to press "Sync now".
+ * No-ops cheaply when Stripe isn't configured, the user has no linked accounts,
+ * or the data was synced recently. When it does sync, it returns the recent
+ * transaction window so the client can merge any new charges in immediately.
+ */
+export async function autoSyncTransactions(): Promise<{ added: number; transactions?: Transaction[] }> {
+  if (!isStripeConfigured()) return { added: 0 };
+  const user = await requireUser();
+  const admin = createAdminClient();
+
+  const { count } = await admin
+    .from('stripe_accounts')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .neq('status', 'disconnected');
+  if (!count) return { added: 0 };
+
+  const { data: recent } = await admin
+    .from('stripe_accounts')
+    .select('last_synced_at')
+    .eq('user_id', user.id)
+    .not('last_synced_at', 'is', null)
+    .order('last_synced_at', { ascending: false })
+    .limit(1);
+  const lastAt = recent?.[0]?.last_synced_at
+    ? new Date(recent[0].last_synced_at as string).getTime()
+    : 0;
+  if (Date.now() - lastAt < AUTO_SYNC_STALE_MS) return { added: 0 };
+
+  const result = await syncStripeForUser(admin, stripeClient(), user.id);
+  revalidateAll();
+
+  // Return the recent window (RLS-scoped to this user) so the client can merge
+  // any newly-arrived transactions without a full reload.
+  const supabase = createClient();
+  const { data } = await supabase
+    .from('transactions')
+    .select(TRANSACTION_COLUMNS)
+    .order('date', { ascending: false })
+    .limit(INITIAL_TRANSACTION_LOAD);
+  return { added: result.added, transactions: ((data ?? []) as Row[]).map(rowToTransaction) };
 }
 
 /** Safe, non-secret list of the user's linked institutions. */

@@ -71,6 +71,8 @@ interface FinanceState {
 
   hydrate: (txs: Transaction[], mode: DataMode) => void;
   loadMore: () => Promise<void>;
+  /** Merge freshly-synced server transactions in (by id), keeping date order. */
+  mergeServerTransactions: (txs: Transaction[]) => void;
 
   addTransaction: (input: TransactionInput) => Promise<void>;
   editTransaction: (id: string, input: TransactionInput) => Promise<void>;
@@ -102,6 +104,23 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   // Only signed-in (db) users page in older rows; demo holds everything locally.
   hydrate: (txs, mode) =>
     set({ transactions: txs, mode, hydrated: true, hasMore: mode === 'db' && txs.length >= INITIAL_TRANSACTION_LOAD }),
+
+  // Background auto-sync hands us the recent server window; merge by id so new
+  // bank transactions appear without touching older rows the user paged in.
+  mergeServerTransactions: (incoming) => {
+    if (get().mode !== 'db' || incoming.length === 0) return;
+    set((s) => {
+      const byId = new Map(s.transactions.map((t) => [t.id, t]));
+      let changed = false;
+      for (const t of incoming) {
+        if (!byId.has(t.id)) changed = true;
+        byId.set(t.id, t);
+      }
+      if (!changed) return {}; // nothing new — avoid a needless re-render
+      const merged = [...byId.values()].sort((a, b) => +new Date(b.date) - +new Date(a.date));
+      return { transactions: merged };
+    });
+  },
 
   loadMore: async () => {
     const { mode, transactions, hasMore, loadingMore } = get();
