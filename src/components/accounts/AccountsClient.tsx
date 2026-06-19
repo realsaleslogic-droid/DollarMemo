@@ -110,10 +110,6 @@ export default function AccountsClient({
                 )}
               </p>
             )}
-            <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-brand-500/25 bg-brand-500/10 px-3 py-1 text-xs font-bold text-brand-700 dark:text-brand-300">
-              <ShieldCheck size={13} className="shrink-0 text-brand-600 dark:text-brand-300" />
-              Secured by Stripe
-            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
