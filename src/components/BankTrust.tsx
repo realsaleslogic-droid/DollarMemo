@@ -14,22 +14,20 @@ export function BankTrustLine({ className }: { className?: string }) {
 }
 
 /**
- * Compact one-line gold "trust seal" badge for the onboarding page and the
- * Accounts page — premium and reassuring without taking much space.
+ * Compact one-line trust badge for the onboarding page and the Accounts page.
+ * Uses the active accent color, so it matches whatever theme the user picks.
  */
 export function BankTrustBadge({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium',
-        'border-amber-300/80 bg-amber-50 text-amber-900',
-        'dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200',
+        'inline-flex items-center gap-2 rounded-full border border-brand-500/25 bg-brand-500/10 px-3.5 py-1.5 text-xs font-medium text-brand-700 dark:text-brand-300',
         className
       )}
     >
-      <ShieldCheck size={14} className="shrink-0 text-amber-500 dark:text-amber-300" />
+      <ShieldCheck size={14} className="shrink-0 text-brand-600 dark:text-brand-300" />
       <span>
-        <span className="font-bold">Bank-level secure</span> — powered by Stripe, login never stored
+        Securely <span className="font-bold">handled by Stripe</span>
       </span>
     </div>
   );
