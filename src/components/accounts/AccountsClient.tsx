@@ -112,12 +112,12 @@ export default function AccountsClient({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           {connections.length > 0 && (
             <button
               onClick={handleSync}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm font-semibold text-ink transition hover:bg-surface-2 disabled:opacity-60 sm:w-auto"
             >
               <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
               {syncing ? 'Syncing…' : 'Sync now'}
@@ -126,12 +126,12 @@ export default function AccountsClient({
           {atLimit ? (
             <Link
               href="/upgrade"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5 text-sm font-bold text-white shadow-glow transition hover:brightness-110"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5 text-sm font-bold text-white shadow-glow transition hover:brightness-110 sm:w-auto"
             >
               <Sparkles size={17} /> Upgrade to connect more
             </Link>
           ) : (
-            <ConnectBankButton onLinked={refresh} />
+            <ConnectBankButton onLinked={refresh} block />
           )}
         </div>
       </div>
