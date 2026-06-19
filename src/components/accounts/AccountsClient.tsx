@@ -113,7 +113,7 @@ export default function AccountsClient({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           {connections.length > 0 && (
             <button
               onClick={handleSync}
@@ -132,7 +132,7 @@ export default function AccountsClient({
               <Sparkles size={17} /> Upgrade to connect more
             </Link>
           ) : (
-            <ConnectBankButton onLinked={refresh} />
+            <ConnectBankButton onLinked={refresh} withSecurityNote />
           )}
         </div>
       </div>

@@ -8,18 +8,24 @@ import { cn } from '@/lib/utils';
 /**
  * Opens Stripe Financial Connections to link a bank/card, then syncs and
  * refreshes so the new transactions appear everywhere.
+ *
+ * `withSecurityNote` adds the small "Secured by Stripe" line under the button
+ * (used on the Accounts page) — left off in the dashboard header so it doesn't
+ * change the header's height.
  */
 export default function ConnectBankButton({
   className,
   onLinked,
+  withSecurityNote = false,
 }: {
   className?: string;
   onLinked?: () => void;
+  withSecurityNote?: boolean;
 }) {
   const { connect, busy, importing, error } = useConnectBank(onLinked);
 
   return (
-    <div className="relative inline-flex flex-col items-start gap-1">
+    <div className={cn('inline-flex flex-col items-start', withSecurityNote ? 'gap-1.5' : 'gap-1')}>
       <button
         onClick={connect}
         disabled={busy || importing}
@@ -37,10 +43,7 @@ export default function ConnectBankButton({
         </p>
       )}
       {error && <p className="max-w-xs text-xs text-expense">{error}</p>}
-      {/* Absolutely placed so it never pushes the button up; small + one line. */}
-      {!importing && !error && (
-        <BankTrustLine className="absolute left-0 top-full mt-1 whitespace-nowrap" />
-      )}
+      {withSecurityNote && !importing && !error && <BankTrustLine />}
     </div>
   );
 }
