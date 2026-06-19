@@ -9,11 +9,11 @@ export function BankTrustLine({ className }: { className?: string }) {
   return (
     <p
       className={cn(
-        'inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-700 dark:text-brand-300',
+        'inline-flex items-center gap-1 text-[10px] font-semibold leading-none text-brand-700 dark:text-brand-300',
         className
       )}
     >
-      <ShieldCheck size={12} className="shrink-0" />
+      <ShieldCheck size={11} className="shrink-0" />
       Secured by Stripe
     </p>
   );
@@ -32,7 +32,7 @@ export function BankTrustBadge({ className }: { className?: string }) {
       )}
     >
       <ShieldCheck size={14} className="shrink-0 text-brand-600 dark:text-brand-300" />
-      <span>Bank-level secure</span>
+      <span>Secured by Stripe</span>
     </div>
   );
 }

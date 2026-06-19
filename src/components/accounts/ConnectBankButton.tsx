@@ -19,7 +19,7 @@ export default function ConnectBankButton({
   const { connect, busy, importing, error } = useConnectBank(onLinked);
 
   return (
-    <div className="inline-flex flex-col items-start gap-1">
+    <div className="relative inline-flex flex-col items-start gap-1">
       <button
         onClick={connect}
         disabled={busy || importing}
@@ -37,7 +37,10 @@ export default function ConnectBankButton({
         </p>
       )}
       {error && <p className="max-w-xs text-xs text-expense">{error}</p>}
-      {!importing && !error && <BankTrustLine className="max-w-xs" />}
+      {/* Absolutely placed so it never pushes the button up; small + one line. */}
+      {!importing && !error && (
+        <BankTrustLine className="absolute left-0 top-full mt-1 whitespace-nowrap" />
+      )}
     </div>
   );
 }
