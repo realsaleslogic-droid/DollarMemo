@@ -1,5 +1,9 @@
-import { HelpCircle } from 'lucide-react';
-import Topbar from '@/components/Topbar';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import BrandLogo from '@/components/BrandLogo';
+
+export const metadata: Metadata = { title: 'Help & FAQ · DollarMemo' };
 
 const FAQS: { q: string; a: string }[] = [
   {
@@ -32,7 +36,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Is my data private, and can I export it?',
-    a: 'Your data is tied to your account and only visible to you. You can export your full transaction history as a CSV from the Transactions page. See our Privacy Policy (linked in Settings) for the details.',
+    a: 'Your data is tied to your account and only visible to you. You can export your full transaction history as a CSV from the Transactions page. See our Privacy Policy for the details.',
   },
   {
     q: 'How do I change my currency, name, or theme?',
@@ -42,34 +46,38 @@ const FAQS: { q: string; a: string }[] = [
 
 export default function HelpPage() {
   return (
-    <>
-      <Topbar title="Help & FAQ" subtitle="Answers to common questions" />
+    <div className="app-bg min-h-screen">
+      <div className="relative z-10 mx-auto max-w-3xl px-5 py-10 sm:py-14">
+        <div className="mb-8 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5">
+            <BrandLogo className="h-9 w-9" />
+            <span className="text-lg font-extrabold tracking-tight">DollarMemo</span>
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline dark:text-brand-300"
+          >
+            <ArrowLeft size={15} /> Back
+          </Link>
+        </div>
 
-      <div className="mx-auto max-w-2xl space-y-5">
-        <div className="card flex items-start gap-3 p-5">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-500/15 text-brand-600">
-            <HelpCircle size={20} />
-          </span>
-          <div>
-            <h3 className="font-bold">How can we help?</h3>
-            <p className="text-sm text-ink-soft">
-              Browse the questions below. Tap any one to see the answer.
-            </p>
+        <div className="card p-6 sm:p-8">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Help &amp; FAQ</h1>
+          <p className="mt-2 text-sm text-ink-soft">Answers to common questions about DollarMemo.</p>
+
+          <div className="mt-6 divide-y divide-line">
+            {FAQS.map((item) => (
+              <details key={item.q} className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-sm font-semibold transition hover:text-brand-600 dark:hover:text-brand-300">
+                  {item.q}
+                  <span className="shrink-0 text-ink-soft transition group-open:rotate-45">+</span>
+                </summary>
+                <p className="pb-4 text-sm leading-relaxed text-ink-soft">{item.a}</p>
+              </details>
+            ))}
           </div>
         </div>
-
-        <div className="card divide-y divide-line overflow-hidden p-0">
-          {FAQS.map((item) => (
-            <details key={item.q} className="group px-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-sm font-semibold transition hover:text-brand-600 dark:hover:text-brand-300">
-                {item.q}
-                <span className="shrink-0 text-ink-soft transition group-open:rotate-45">+</span>
-              </summary>
-              <p className="pb-4 text-sm leading-relaxed text-ink-soft">{item.a}</p>
-            </details>
-          ))}
-        </div>
       </div>
-    </>
+    </div>
   );
 }

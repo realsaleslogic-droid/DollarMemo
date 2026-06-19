@@ -71,7 +71,7 @@ export default function Landing() {
         </section>
 
         {/* Feature grid */}
-        <section className="grid grid-cols-1 gap-4 pb-20 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 pb-16 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f) => (
             <div key={f.title} className="glass p-5">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow">
@@ -82,6 +82,22 @@ export default function Landing() {
             </div>
           ))}
         </section>
+
+        {/* Footer */}
+        <footer className="flex flex-col items-center gap-4 border-t border-line py-8 text-sm text-ink-soft sm:flex-row sm:justify-between">
+          <p>© {new Date().getFullYear()} DollarMemo</p>
+          <nav className="flex items-center gap-5">
+            <Link href="/privacy" className="transition hover:text-ink">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition hover:text-ink">
+              Terms
+            </Link>
+            <Link href="/help" className="transition hover:text-ink">
+              Help &amp; FAQ
+            </Link>
+          </nav>
+        </footer>
       </div>
     </div>
   );
