@@ -152,7 +152,7 @@ export default function AccountsClient({
           <p className="max-w-sm text-sm text-ink-soft">
             Connect a bank to pull in real transactions and let DollarMemo track and categorize your spending.
           </p>
-          <BankTrustBadge className="mt-4 max-w-md text-left" />
+          <BankTrustBadge className="mt-3" />
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

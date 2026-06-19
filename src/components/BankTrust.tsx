@@ -14,38 +14,23 @@ export function BankTrustLine({ className }: { className?: string }) {
 }
 
 /**
- * Prominent, premium-looking trust badge for the onboarding page and the
- * Accounts page, with an icon, a clear explanation, and reassurance chips.
+ * Compact one-line gold "trust seal" badge for the onboarding page and the
+ * Accounts page — premium and reassuring without taking much space.
  */
 export function BankTrustBadge({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3.5 rounded-2xl border border-line bg-surface/70 p-4 backdrop-blur',
+        'inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium',
+        'border-amber-300/80 bg-amber-50 text-amber-900',
+        'dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200',
         className
       )}
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500/12 text-brand-600 dark:text-brand-300">
-        <ShieldCheck size={20} />
+      <ShieldCheck size={14} className="shrink-0 text-amber-500 dark:text-amber-300" />
+      <span>
+        <span className="font-bold">Bank-level secure</span> — powered by Stripe, login never stored
       </span>
-      <div className="min-w-0">
-        <p className="text-sm font-bold text-ink">Bank-level security</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-ink-soft">
-          Connections are powered by <span className="font-semibold text-ink">Stripe</span> — trusted
-          by millions of businesses. Your login is entered with Stripe and{' '}
-          <span className="font-semibold text-ink">never seen or stored</span> by DollarMemo.
-        </p>
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {['256-bit encryption', 'Powered by Stripe', 'Read-only access'].map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-brand-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:text-brand-300"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

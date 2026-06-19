@@ -63,7 +63,7 @@ export default function Landing() {
               <span>No sign-up needed to explore the demo</span>
             </div>
 
-            <BankTrustBadge className="mt-6 max-w-md" />
+            <BankTrustBadge className="mt-6" />
           </div>
 
           {/* Hero mascot */}
