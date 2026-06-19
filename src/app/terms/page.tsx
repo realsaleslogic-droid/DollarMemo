@@ -28,10 +28,10 @@ export default function TermsPage() {
             <span className="text-lg font-extrabold tracking-tight">DollarMemo</span>
           </Link>
           <Link
-            href="/dashboard"
+            href="/"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline dark:text-brand-300"
           >
-            <ArrowLeft size={15} /> Back to app
+            <ArrowLeft size={15} /> Back
           </Link>
         </div>
 
