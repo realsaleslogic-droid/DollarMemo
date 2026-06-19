@@ -3,7 +3,6 @@ import { ArrowRight, BarChart3, ShieldCheck, Landmark, FileDown, PlayCircle } fr
 import HeroCharacter from '@/components/HeroCharacter';
 import BrandLogo from '@/components/BrandLogo';
 import DemoButton from '@/components/DemoButton';
-import { BankTrustBadge } from '@/components/BankTrust';
 
 const FEATURES = [
   { icon: BarChart3, title: 'Live analytics', desc: 'Spending by category, trends and net cash flow update in real time.' },
@@ -62,8 +61,6 @@ export default function Landing() {
               <span className="hidden text-ink-soft/50 sm:inline">·</span>
               <span>No sign-up needed to explore the demo</span>
             </div>
-
-            <BankTrustBadge className="mt-6" />
           </div>
 
           {/* Hero mascot */}

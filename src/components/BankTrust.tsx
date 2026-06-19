@@ -1,21 +1,27 @@
-import { ShieldCheck, Lock } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
- * Small one-line reassurance for directly under a "Connect bank" button.
+ * Tiny shield + "Secured by Stripe" for directly under a "Connect bank" button.
+ * Uses the active accent color so it matches the selected theme.
  */
 export function BankTrustLine({ className }: { className?: string }) {
   return (
-    <p className={cn('inline-flex items-center gap-1.5 text-xs text-ink-soft', className)}>
-      <Lock size={12} className="shrink-0 text-brand-600 dark:text-brand-300" />
-      Secured by Stripe — your bank login is never seen or stored.
+    <p
+      className={cn(
+        'inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-700 dark:text-brand-300',
+        className
+      )}
+    >
+      <ShieldCheck size={12} className="shrink-0" />
+      Secured by Stripe
     </p>
   );
 }
 
 /**
- * Compact one-line trust badge for the onboarding page and the Accounts page.
- * Uses the active accent color, so it matches whatever theme the user picks.
+ * Compact one-line "Bank-level secure" pill for the Accounts page. Uses the
+ * active accent color, so it matches whatever theme the user picks.
  */
 export function BankTrustBadge({ className }: { className?: string }) {
   return (
@@ -26,7 +32,7 @@ export function BankTrustBadge({ className }: { className?: string }) {
       )}
     >
       <ShieldCheck size={14} className="shrink-0 text-brand-600 dark:text-brand-300" />
-      <span>Handled by Stripe</span>
+      <span>Bank-level secure</span>
     </div>
   );
 }
